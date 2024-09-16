@@ -5,7 +5,7 @@ from src import event
 class TestEvent(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.testObject = event()
+        self.testObject = event(1)
 
     def test_TimeStampNonePerDefault(self):
         self.assertIsNone(self.testObject.timestamp)

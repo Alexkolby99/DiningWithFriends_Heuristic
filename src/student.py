@@ -3,15 +3,33 @@ from src.interfaces import student_Base
 
 class student(student_Base):
 
-    def __init__(self,type,number):
+    def __init__(self,type,number,numberOfEvents,numberOfStudents):
         self._type = type
         self._number = number
         self._hostTimes = 0
-        self._hostLastEvent = False
-        # self._studentsGroupedWith = np.array([])
-        # self._studentsGroupedWithLast = np.array([])
-        # self._possibleStudentsToGroupWith = np.array([])
-        self._group = None
+        self._hostEvents = [False] * numberOfEvents
+        self._groupingOptions = np.zeros((numberOfEvents,numberOfStudents),dtype=bool)
+        self._groupingOptions = ~self._groupingOptions
+        self._groupingOptions[:,number] = False
+        self._group = [None] * numberOfEvents
+        self._canVisit = [True] * numberOfStudents
+        self._canVisit[self.number] = False
+    
+
+    @property
+    def canVisit(self):
+        return self._canVisit
+
+    def hasVisited(self,student):
+
+        self._canVisit[student.number] = False
+
+    @property
+    def groupingOptions(self):
+        return self._groupingOptions
+
+    def getGroupOptions(self,t):
+        return self.groupingOptions[t]
 
     @property
     def type(self):
@@ -24,21 +42,10 @@ class student(student_Base):
     @property
     def hostTimes(self):
         return self._hostTimes
-    
-    @hostTimes.setter
-    def hostTimes(self,value):
-        self._hostTimes = value
-   
-    def addHostTime(self,value):
-        self.hostTimes += value
 
     @property
-    def hostLastEvent(self):
-        return self._hostLastEvent
-    
-    @hostLastEvent.setter
-    def hostLastevent(self,value):
-        self._hostLastEvent = value
+    def hostEvents(self):
+        return self._hostEvents
 
     @property
     def group(self):
@@ -48,11 +55,15 @@ class student(student_Base):
     def group(self,group):
         self._group = group
 
-    def addGroupedWith(self,student):
-        pass
-
-    def addGroupedWithLast(self,student):
-        pass
+    def setGroup(self,group,t):
+        self.group[t] = group
     
-    def addHostTime(self,student):
-        pass
+    def setHostTime(self,t):
+        if not self._hostEvents[t]:
+            self.hostEvents[t] = True
+            self._hostTimes += 1
+    
+    def removeHostTime(self,t):
+        if self.hostEvents[t]:
+            self.hostEvents[t] = False
+            self.hostTimes -= 1

@@ -2,9 +2,10 @@ from src.interfaces import event_Base
 
 class event(event_Base):
 
-    def __init__(self) -> None:
-        self._timeStamp = None
+    def __init__(self,t) -> None:
+        self._timeStamp = t
         self._groups = []
+        self.invalidGroups = []
 
     @property
     def timestamp(self):
