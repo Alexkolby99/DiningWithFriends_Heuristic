@@ -6,7 +6,6 @@ from src.group_2 import group
 from src.student_2 import student
 from random import shuffle
 
-
 E = 6
 l = 4
 u = 5
@@ -41,8 +40,10 @@ def canAdd(members: list[student] | student,group: group):
     if group.size + len(members) > u:
         return False
 
-    for member in members:
-        if group.genderCount[member.gender] == 0:
+
+    for gender in [0,1]:
+        numberOfGendersToAdd = sum([1 for member in members if member.gender == gender])
+        if group.genderCount[gender] < 2-numberOfGendersToAdd and numberOfGendersToAdd + group.genderCount[gender] > 0:
             return False
 
     # first check that the members to add can be grouped together
