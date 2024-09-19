@@ -6,7 +6,6 @@ class student():
 
     def __init__(self,identifier,gender,numberOfEvents):
         self._hostTimes = 0
-        self._hasGroup = [False] * (numberOfEvents+1)
         self._groups = [group(0,None)]*(numberOfEvents+1)
         self._studentsThatVisited = []
         self._gender = gender
@@ -17,15 +16,17 @@ class student():
     def hostTimes(self):
         return self._hostTimes
 
+    def addStudentsThatVisited(self,students: list):
+        self._studentsThatVisited += [s for s in students if s != self]
+
+    def addStudentsGroupedWith(self,students: list):
+        self._studentsGroupedWith += [s for s in students if s != self]
+
     def addHostTime(self):
         self._hostTimes += 1
 
     def removeHostTime(self):
         self._hostTimes -= 1
-
-    @property
-    def hasGroup(self):
-        return self._hasGroup
     
     @property
     def groups(self):
@@ -33,14 +34,6 @@ class student():
     
     def assignGroup(self,group):
         self._groups[group.timeStamp] = group
-        self._hasGroup[group.timeStamp] = True
-
-        self._studentsGroupedWith = self._studentsGroupedWith + group.members
-
-        if group.host == self:
-            self._studentsThatVisited = self._studentsThatVisited + group.members
-            self._studentsThatVisited.remove(self)
-            self._hostTimes += 1
 
     @property
     def studentsThatVisited(self):

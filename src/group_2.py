@@ -51,8 +51,13 @@ class group():
     
     @host.setter
     def host(self,host):
+        
+        self._invalidOptions = set()
+        for member in self._members:
+            self._invalidOptions = set(member.groups[self.timeStamp-1].members).union(set(self._invalidOptions))
+
+        self._invalidOptions = set(host.studentsThatVisited).union(set(self._invalidOptions))
         self._host = host
-        self._invalidOptions = set(self._invalidOptions) + set(host.studentsThatVisited)
 
     @property
     def members(self):
