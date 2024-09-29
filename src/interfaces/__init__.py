@@ -1,3 +1,6 @@
 from src.interfaces.group_interface import group_Base
 from src.interfaces.event_interface import event_Base
 from src.interfaces.student_interface import student_Base
+from src.interfaces.constructionHeuristic_interface import ConstructionHeuristic_base
+from src.interfaces.constructionMove_interface import ConstructionMove_base
+from src.interfaces.initializer_interface import Initializer_base

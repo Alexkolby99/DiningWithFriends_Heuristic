@@ -1,90 +1,49 @@
-import numpy as np
-from src import student, group
+
+from typing import List, Literal
 from src.interfaces import group_Base
 
-class group(group_Base):
-
-    def __init__(self,N,t,preGroups,size_min,size_max) -> None:
-        self._host = None
-        self._members = []
-        self._size = 0
-        self._addOptions = np.zeros(N,dtype=bool)
-        self._addOptions = ~self._addOptions
-        self._size_min = size_min
-        self._size_max = size_max
-        self.t = t
-        self._preGroups = preGroups
-        self._validSize = False
-        self._hasHost = False
-
-    @property
-    def validSize(self):
-        return self._size >= self.size_min and self._size <= self.size_max
-
-    @property
-    def hasHost(self):
-        return self._hasHost
-
-    @property
-    def size_min(self):
-        return self._size_min
-    
-    @property
-    def size_max(self):
-        return self._size_max
-
-    @property
-    def preGroups(self):
-        return self._preGroups
-    
-    @property
-    def size(self):
-        return self._size
-
-    @property
-    def addOptions(self):
-        return self._addOptions
-
-    @property
-    def host(self):
-        return self._host
-    
-    @host.setter
-    def host(self,host):
+class Group(group_Base):
+    def __init__(self, host: 'student', timestamp: int) -> None:
+        self._members: List['student'] = []
         self._host = host
+        self._timestamp = timestamp
+        self._genderCount = [0,0]
+
+        if host is not None:
+            self.addMember(host)
 
     @property
-    def members(self):
+    def members(self) -> List['student']:
         return self._members
-    
-    @members.setter
-    def members(self,members):
-        self._members = members
 
-    def addMember(self,member: student):
-        
-        assert self.addOptions[member.number], 'Can not be assigned to this group'
+    @property
+    def host(self) -> 'student':
+        return self._host
 
-        if self.size == 1:
-            self._addOptions = self.members[0].getGroupOptions(self.t)
+    @property
+    def size(self) -> int:
+        return len(self._members)
 
-        self.members = self.members + [member]
-        self._addOptions = np.logical_and(self.addOptions, member.getGroupOptions(self.t))
-        self._size += 1
+    @property
+    def t(self) -> int:
+        return self._timestamp
 
-        if self.size == 1:
-            self._addOptions[np.array(self.preGroups) != member.type] = False
+    def addMember(self, member: 'student') -> None:
+        '''Add a member to the group'''
+        if member not in self._members:
+            self._members.append(member)
+            self._genderCount[member.gender] += 1
+        else:
+            print(f"{member} is already a member of the group.")
 
+    def removeMember(self, member: 'student') -> None:
+        '''Remove a member from the group'''
+        if member in self._members:
+            self._members.remove(member)
+            self._genderCount[member.gender] -= 1
+        else:
+            print(f"{member} is not a member of the group.")
 
-    def removeMember(self,member):
-        self.members.remove(member)
+    def getGenderCount(self,gender: Literal[0,1]):
 
-    def canMerge(self,group: group):
-
-        if self.size + group.size > self.size_max:
-            return False
-
-        groupFitInSelf = all(self.addOptions[[member.number for member in group.members]])
-        selfFitInGroup = all(group.addOptions[[member.number for member in self.members]])
-
-        return groupFitInSelf and selfFitInGroup
+        return self._genderCount[gender]

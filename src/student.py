@@ -1,69 +1,56 @@
-import numpy as np
-from src.interfaces import student_Base
+from typing import List, Literal
+from src.group import Group
+from src.interfaces import student_Base, group_Base
 
-class student(student_Base):
-
-    def __init__(self,type,number,numberOfEvents,numberOfStudents):
-        self._type = type
-        self._number = number
-        self._hostTimes = 0
-        self._hostEvents = [False] * numberOfEvents
-        self._groupingOptions = np.zeros((numberOfEvents,numberOfStudents),dtype=bool)
-        self._groupingOptions = ~self._groupingOptions
-        self._groupingOptions[:,number] = False
-        self._group = [None] * numberOfEvents
-        self._canVisit = [True] * numberOfStudents
-        self._canVisit[self.number] = False
-    
+# Concrete implementation of the student_Base interface
+class Student(student_Base):
+    def __init__(self, identifier: int, gender: Literal[0, 1], num_groups: int) -> None:
+        self._identifier = identifier
+        self._gender = gender
+        self._host_times = 0
+        self._students_visited: List[student_Base] = []
+        self._groups: List[group_Base] = [Group(None,0)] * num_groups  # Initialize groups with None
 
     @property
-    def canVisit(self):
-        return self._canVisit
-
-    def hasVisited(self,student):
-
-        self._canVisit[student.number] = False
-
-    @property
-    def groupingOptions(self):
-        return self._groupingOptions
-
-    def getGroupOptions(self,t):
-        return self.groupingOptions[t]
-
-    @property
-    def type(self):
-        return self._type
+    def identifier(self) -> int:
+        return self._identifier
     
     @property
-    def number(self):
-        return self._number
-    
-    @property
-    def hostTimes(self):
-        return self._hostTimes
+    def gender(self) -> Literal[0, 1]:
+        return self._gender
 
     @property
-    def hostEvents(self):
-        return self._hostEvents
+    def hostTimes(self) -> int:
+        return self._host_times
 
     @property
-    def group(self):
-        return self._group
-    
-    @group.setter
-    def group(self,group):
-        self._group = group
+    def studentsThatVisited(self) -> List[student_Base]:
+        return self._students_visited
 
-    def setGroup(self,group,t):
-        self.group[t] = group
+    @property
+    def groups(self) -> List[group_Base]:
+        return self._groups
+
+    def addHostTime(self) -> None:
+        '''Increment host times by 1'''
+        self._host_times += 1
+
+    def removeHostTime(self) -> None:
+        '''Subtract one from host times, ensuring it doesn't go below zero'''
+        if self._host_times > 0:
+            self._host_times -= 1
+
+    def assignGroup(self, group: group_Base) -> None:
+        '''Assigns the group at position t in groups'''
+        if 0 <= group.t < len(self._groups):
+            self._groups[group.t] = group
+        else:
+            raise IndexError("Group index out of range.")
+        
+        if group.host == self:
+            for member in group.members:
+                self.addStudentThatVisited(member)
     
-    def setHostTime(self,t):
-        if not self._hostEvents[t]:
-            self.hostEvents[t] = True
-            self._hostTimes += 1
-    
-    def removeHostTime(self,t):
-        if self.hostEvents[t]:
-            self.hostEvents[t] = False
-            self.hostTimes -= 1
+    def addStudentThatVisited(self, student: student_Base) -> None:
+        '''Add a student to the visited list'''
+        self._students_visited.append(student)
