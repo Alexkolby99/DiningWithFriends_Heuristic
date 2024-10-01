@@ -27,6 +27,8 @@ class Event(event_Base):
         '''Add a group to the event'''
         if group not in self._groups:
             self._groups.append(group)
+            for member in group.members:
+                member.assignGroup(group)
         else:
             print(f"{group} is already part of the event.")
 

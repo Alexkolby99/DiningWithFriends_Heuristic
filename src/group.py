@@ -47,3 +47,12 @@ class Group(group_Base):
     def getGenderCount(self,gender: Literal[0,1]):
 
         return self._genderCount[gender]
+    
+    def  __str__(self):
+
+        return f'''
+                host is student {self.host.identifier} with gender {self.host.gender}\n
+                group has gender count: {self._genderCount}\n
+                members are: {[member.identifier for member in self.members]}\n
+                invalidOptions are: {set([m.identifier for member in self.members for m in member.groups[self.t-1].members] + [m.identifier for m in self.host.studentsThatVisited])}
+                '''

@@ -2,12 +2,12 @@
 import unittest
 from src.student import Student
 from src.group import Group
-from src.constructionMoves import InsertMember
+from src.constructionMoves import InsertMove
 
 class TestinsertMember_move(unittest.TestCase):
     def setUp(self):
         '''Set up test cases'''
-        self.move = InsertMember()
+        self.move = InsertMove(5)
         self.student = Student(identifier=0,gender=1,num_groups=3)
   
     def testCannotInsertIfGroupedWithLast(self):
@@ -17,14 +17,14 @@ class TestinsertMember_move(unittest.TestCase):
         host.assignGroup(formerGroup)
         groups = [Group(host,1)]
 
-        self.assertFalse(self.move.performMove(self.student,groups,1))
+        self.assertFalse(self.move.performMove(self.student,groups))
 
 
     def testCannotInsertIfGenderCountOfZero(self):
         host = Student(1,0,num_groups=3)
         groups = [Group(host,1)]
 
-        self.assertFalse(self.move.performMove(self.student,groups,1))
+        self.assertFalse(self.move.performMove(self.student,groups))
 
     def testCannotBeGroupedWithIfAlreadyVisited(self):
         host = Student(1,1,num_groups=3)
@@ -34,12 +34,12 @@ class TestinsertMember_move(unittest.TestCase):
         host.assignGroup(group)
         groups = [Group(host,2)]
 
-        self.assertFalse(self.move.performMove(self.student,groups,2))
+        self.assertFalse(self.move.performMove(self.student,groups))
 
     def testCanBeAddedElse(self):
         host = Student(1,1,num_groups=3)
         groups = [Group(host,1)]
 
         self.assertEqual(groups[0].members,[host])
-        self.assertTrue(self.move.performMove(self.student,groups,1))
+        self.assertTrue(self.move.performMove(self.student,groups))
         self.assertEqual(groups[0].members,[host,self.student])

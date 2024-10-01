@@ -1,1 +1,3 @@
-from src.constructionMoves.insertMember import InsertMember
+from src.constructionMoves.insertMove import InsertMove
+from src.constructionMoves.insertSwapMove import InsertSwapMove
+from src.constructionMoves.swapGroupMove import SwapGroupMove

@@ -6,10 +6,10 @@ from src.event import Event
 class TestEvent(unittest.TestCase):
     def setUp(self):
         '''Set up test cases'''
-        self.host1 = Student(identifier=1, gender=1,num_groups=1)
-        self.host2 = Student(identifier=2, gender=0,num_groups=1)
-        self.group1 = Group(host=self.host1, timestamp=1234567890)
-        self.group2 = Group(host=self.host2, timestamp=1234567891)
+        self.host1 = Student(identifier=1, gender=1,num_groups=2)
+        self.host2 = Student(identifier=2, gender=0,num_groups=2)
+        self.group1 = Group(host=self.host1, timestamp=1)
+        self.group2 = Group(host=self.host2, timestamp=1)
         self.event = Event(timestamp=1234567892)
 
         # Add initial hosts and groups

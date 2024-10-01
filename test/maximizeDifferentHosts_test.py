@@ -7,7 +7,8 @@ from src.initializers import MaximizeDifferentHosts_initializer
 class TestMaximizeDifferentHosts_initializer(unittest.TestCase):
     def setUp(self):
         '''Set up test cases'''
-        self.initializer = MaximizeDifferentHosts_initializer(4)
+        self.t = 1
+        self.initializer = MaximizeDifferentHosts_initializer()
         self.boys = [Student(identifier=1, gender=1,num_groups=1),
                 Student(identifier=2, gender=1,num_groups=1),
                 Student(identifier=3, gender=1,num_groups=1),
@@ -22,24 +23,24 @@ class TestMaximizeDifferentHosts_initializer(unittest.TestCase):
         self.boys[1].addHostTime()
         self.girls[0].addHostTime()
         self.girls[1].addHostTime()
-        self.t = 1
+        
 
     def test4GroupsAreMade(self):
 
-        groups = self.initializer.initializeGroups(self.boys,self.girls,self.t)
+        groups,_ = self.initializer.initializeGroups(self.boys,self.girls,4,4,self.t)
 
         self.assertEqual(len(groups),4)
 
     def testHostHasZeroHostTimes(self):
 
-        groups = self.initializer.initializeGroups(self.boys,self.girls,self.t)
+        groups,_ = self.initializer.initializeGroups(self.boys,self.girls,4,4,self.t)
         for group in groups:
             self.assertEqual(group.host.hostTimes,0)
 
     def testHostHasOneHostTimes(self):
         self.boys[0].addHostTime()
         self.boys[2].addHostTime()
-        groups = self.initializer.initializeGroups(self.boys,self.girls,self.t)
+        groups,_ = self.initializer.initializeGroups(self.boys,self.girls,4,4,self.t)
         for group in groups:
             self.assertNotEqual(group.host.hostTimes,2)
 
@@ -48,4 +49,4 @@ class TestMaximizeDifferentHosts_initializer(unittest.TestCase):
         self.boys.pop()
 
         with self.assertRaises(AssertionError):
-            self.initializer.initializeGroups(self.boys,self.girls,self.t)
+            self.initializer.initializeGroups(self.boys,self.girls,4,4,self.t)

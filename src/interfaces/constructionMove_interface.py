@@ -4,7 +4,7 @@ from typing import List
 
 class ConstructionMove_base(ABC):
     @abstractmethod
-    def performMove(self, students: 'students', groups: List['groups'],t) -> bool:
+    def performMove(self, target, groups: List['groups']) -> bool:
         """
         Performs a move with the given students and groups.
         
