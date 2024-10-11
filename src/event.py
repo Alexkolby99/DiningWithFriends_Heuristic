@@ -29,6 +29,7 @@ class Event(event_Base):
             self._groups.append(group)
             for member in group.members:
                 member.assignGroup(group)
+            group.host.addHostTime()
         else:
             print(f"{group} is already part of the event.")
 
@@ -52,3 +53,14 @@ class Event(event_Base):
             self._hosts.remove(host)
         else:
             print(f"{host} is not a host of the event.")
+
+    def __str__(self):
+
+        out_str = f'Event at timestamp {self.timeStamp} has NumberOfGroups = {len(self.groups)}\n'
+
+        for i,g in enumerate(self.groups):
+            out_str += f'Group {i} is:\n' 
+            out_str += g.__str__()
+            out_str += '\n'
+
+        return out_str

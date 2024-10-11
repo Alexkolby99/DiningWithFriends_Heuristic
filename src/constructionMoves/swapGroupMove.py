@@ -5,7 +5,7 @@ from src.group import Group
 
 class SwapGroupMove(ConstructionMove_base):
 
-    def __init__(self,max_size,min_size) -> None:
+    def __init__(self,min_size,max_size) -> None:
         self.max_size = max_size
         self.min_size = min_size
 
@@ -17,11 +17,12 @@ class SwapGroupMove(ConstructionMove_base):
         """
         
         for g1 in groups:
-            for m in self.__canRemove(g1):
-                if self.__canAdd(m,group):
-                    g1.removeMember(m)
-                    group.addMember(m)
-                    return True
+            if g1 != group:
+                for m in self.__canRemove(g1):
+                    if self.__canAdd(m,group):
+                        g1.removeMember(m)
+                        group.addMember(m)
+                        return True
         
         return False
 

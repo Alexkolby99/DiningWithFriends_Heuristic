@@ -1,34 +1,39 @@
 from typing import List
+
+import numpy as np
 from src.group import Group
 from src.interfaces import Initializer_base
 from src.student import Student
 
 class MaximizeDifferentHosts_initializer(Initializer_base):
 
-    
+   
     def initializeGroups(self, boys: List[Student], girls: List[Student],num_groups,min_size,t) -> List[Group]:
+        #np.random.seed(36)
+        np.random.shuffle(boys)
+        np.random.shuffle(girls)
 
-        groups, remainingBoys, remainingGirls = self.__findHosts(boys, girls, num_groups, t)
+        self.groups, remainingBoys, remainingGirls = self.__findHosts(boys, girls, num_groups, t)
             # Add the created group to the list
         
         # assign a person of the same gender as the host
-        for group in groups:
+        for group in self.groups:
             if group.host.gender == 1:
-                for boy in remainingBoys[:]:
+                for boy in sorted(remainingBoys,key = lambda x: self.getStudentSortingOrder(x,self.groups)):
                     if self.__canAdd(boy,group,t):
                         group.addMember(boy)
                         remainingBoys.remove(boy)
                         break
             
             else:
-                for girl in remainingGirls[:]:
+                for girl in sorted(remainingGirls,key = lambda x: self.getStudentSortingOrder(x,self.groups)):
                     if self.__canAdd(girl,group,t):
                         group.addMember(girl)
                         remainingGirls.remove(girl)
                         break
         
         # assign opposite gender or same gender 
-        for group in groups:
+        for group in self.groups:
             if group.host.gender == 1:
                 success = self.__assignOppositeGender(remainingGirls, group, t)
                 if not success:
@@ -38,22 +43,22 @@ class MaximizeDifferentHosts_initializer(Initializer_base):
                 if not success:
                     self.__assignSameGender(min_size, remainingGirls, group,t)
 
-        return groups, remainingBoys + remainingGirls 
+        return self.groups, remainingBoys + remainingGirls 
 
     def __assignSameGender(self, min_size, remainingStudents, group,t):
         counter = 0
-        for boy in remainingStudents[:]:
+        for student in sorted(remainingStudents,key = lambda x: self.getStudentSortingOrder(x,self.groups)):
             if counter == min_size-2:
                 break       
-            if self.__canAdd(boy,group,t):
-                group.addMember(boy)
-                remainingStudents.remove(boy)
+            if self.__canAdd(student,group,t):
+                group.addMember(student)
+                remainingStudents.remove(student)
                 counter +=1
 
     def __assignOppositeGender(self, remainingStudents, group, t):
 
-        for m1 in remainingStudents[:]:
-                for m2 in remainingStudents[:]:
+        for m1 in sorted(remainingStudents,key = lambda x: self.getStudentSortingOrder(x,self.groups)):
+                for m2 in sorted(remainingStudents,key = lambda x: self.getStudentSortingOrder(x,self.groups)):
                     if m1 != m2:
                         if self.__canAdd(m1,group,t) and self.__canAdd(m2,group,t):
                             if self.__canBeGrouped(m1,m2,t):
@@ -104,6 +109,10 @@ class MaximizeDifferentHosts_initializer(Initializer_base):
         while len(groups) < num_groups:
             host = hostPriority[i]
 
+            if host.groups[t-1].host == host:
+                i += 1
+                continue
+
             # Assign a boy as a host if available and within limits
             if num_boyHosts < max_boys_as_hosts and host.gender == 1:  # Limit the number of boy hosts
                 group = Group(host,t)
@@ -120,3 +129,19 @@ class MaximizeDifferentHosts_initializer(Initializer_base):
             
             i += 1
         return groups,remainingBoys,remainingGirls
+    
+    def getStudentSortingOrder(self,student,groups):
+
+        counter = len(groups)
+
+        for group in groups:
+            if student in group.host.studentsThatVisited:
+                counter -= 1
+                continue
+
+            for member in group.members:
+                if student in member.groups[group.t-1].members:
+                    counter -= 1
+                    break
+
+        return counter

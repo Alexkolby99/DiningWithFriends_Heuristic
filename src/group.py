@@ -20,6 +20,10 @@ class Group(group_Base):
     def host(self) -> 'student':
         return self._host
 
+    @host.setter
+    def host(self,student):
+        self._host = student
+
     @property
     def size(self) -> int:
         return len(self._members)
@@ -27,6 +31,10 @@ class Group(group_Base):
     @property
     def t(self) -> int:
         return self._timestamp
+    
+    @t.setter
+    def t(self,t):
+        self._timestamp = t
 
     def addMember(self, member: 'student') -> None:
         '''Add a member to the group'''
@@ -41,6 +49,8 @@ class Group(group_Base):
         if member in self._members:
             self._members.remove(member)
             self._genderCount[member.gender] -= 1
+            if member == self._host:
+                self._host == None
         else:
             print(f"{member} is not a member of the group.")
 
@@ -51,8 +61,8 @@ class Group(group_Base):
     def  __str__(self):
 
         return f'''
-                host is student {self.host.identifier} with gender {self.host.gender}\n
+                host is student {self.host.identifier if self.host is not None else None} with gender {self.host.gender if self.host is not None else None}\n
                 group has gender count: {self._genderCount}\n
                 members are: {[member.identifier for member in self.members]}\n
-                invalidOptions are: {set([m.identifier for member in self.members for m in member.groups[self.t-1].members] + [m.identifier for m in self.host.studentsThatVisited])}
                 '''
+    #invalidOptions are: {set([m.identifier for member in self.members for m in member.groups[self.t-1].members] + [m.identifier for m in self.host.studentsThatVisited if self.host is not None])}

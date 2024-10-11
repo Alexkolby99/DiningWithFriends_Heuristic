@@ -4,12 +4,18 @@ from src.student import Student
 from src.group import Group
 from src.constructionMoves import InsertMove
 
-class TestinsertMember_move(unittest.TestCase):
+class TestinsertMove(unittest.TestCase):
     def setUp(self):
         '''Set up test cases'''
         self.move = InsertMove(5)
         self.student = Student(identifier=0,gender=1,num_groups=3)
-  
+    
+    ## TEST LIST
+    # If Grouped at last event cannot insert
+    # If none of the students gender in the group cannot insert
+    # If Already visited the host cannot insert
+    # Should be able to be inserted else
+
     def testCannotInsertIfGroupedWithLast(self):
         host = Student(1,1,num_groups=3)
         formerGroup = Group(self.student,0)
