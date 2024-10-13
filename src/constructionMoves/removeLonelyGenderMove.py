@@ -24,7 +24,7 @@ class RemoveLonelyGenderMove(ConstructionMove_base):
         
         lonelyGender = 0 if group.getGenderCount(0) == 1 else 1
     
-        for student in group.members:
+        for student in group.members[:]:
             if student.gender == lonelyGender:
                 for g2 in groups:
                     if g2 != group:

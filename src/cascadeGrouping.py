@@ -5,7 +5,7 @@ import pandas as pd
 from src.student import Student
 from src.group import Group
 from src.event import Event
-from src.constructionMoves import RemoveLonelyGenderMove, SwapLonelyGenderMove, GetSameGenderMove
+from src.constructionMoves import RemoveLonelyGenderMove, SwapLonelyGenderMove, GetSameGenderMove,FindHostWithSwapsMove
 
 class CascadeGrouping:
 
@@ -22,7 +22,6 @@ class CascadeGrouping:
     def constructSolution(self,n_events,validate = True):
         
         events = [Event(0)]
-
         girls = [Student(i,0,n_events+1) for i in range(self.n_girls)]
         boys = [Student(i,1,n_events+1) for i in range(self.n_girls,self.n_girls+self.n_boys)]
 
@@ -43,17 +42,17 @@ class CascadeGrouping:
 
         events.append(event)
 
-        eventsSinceCascading =self.m_upper*2+1
+        eventsSinceCascading =self.l*2+1
 
         for e in range(2,n_events+1):
-            if eventsSinceCascading <= self.m_upper*2:
+            if eventsSinceCascading < self.l*2:
                 groups = self.makeGroupsFromEarlier(events[e-2], e)
                 for g in groups:
                     if g.host is None:
                         groups = self.cascadeFormerGroup(leastGender,groupMatrix,e)
             else:
                 groups = self.cascadeFormerGroup(leastGender, groupMatrix, e)
-                eventsSinceCascading = 0
+                eventsSinceCascading = 1
 
             event = Event(e)
             for g in groups:
@@ -68,16 +67,21 @@ class CascadeGrouping:
 
             groupMatrix = self.getMatrixFromGroups(groups,leastGender)
 
-            return events
+        return events
 
     def cascadeFormerGroup(self, leastGender, groupMatrix, e):
         groupMatrix = self.cascadeGroupMatrix(groupMatrix)
         groups = self.getGroupsFromMatrix(groupMatrix,e)
         self.repairGenderCount(groups,leastGender)
         
+        swapMove = FindHostWithSwapsMove(self.l,self.u)
                 
         for g in groups:
-            _ = self.findHosts(g)
+            status = self.findHosts(g)
+            if status == False:
+                status = swapMove.performMove(g,groups)   
+
+
 
         return groups
 
@@ -207,11 +211,10 @@ class CascadeGrouping:
             leastGender_groupCounter = np.array([g.getGenderCount(leastGender) for g in groups if not g.getGenderCount(leastGender) == 0])
             maxIters += 1
         
-        assert min(leastGender_groupCounter) >= 2, 'Unable to repair the gender group'
+        assert min(leastGender_groupCounter) >= 2, 'Unable to repair the gender grouping'
 
 
     def findHosts(self,group):
-        
 
         def canHost(member,group):
 
@@ -229,6 +232,10 @@ class CascadeGrouping:
             if canHost(m,group):
                 group.host = m
                 return True
+  
+        return False
+
+
 
     def writeToExcel(self,events,filename='overviewFile.xlsx'):
         df = pd.DataFrame(index=[f'Group_{i}' for i in range(self.m_upper)])
@@ -320,3 +327,4 @@ if __name__ == '__main__':
         n_events = instance['numOfEvents']
         grouper = CascadeGrouping(n_girls,n_boys,l,u)
         events = grouper.constructSolution(n_events)
+        grouper.writeToExcel(events,f'overviewFile_{file}.xlsx')
