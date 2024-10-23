@@ -1,0 +1,6 @@
+{   "n_girls": 6,
+    "n_boys": 20,
+    "numOfEvents": 10,
+    "minNumGuests": 4,
+    "maxNumGuests": 5
+}

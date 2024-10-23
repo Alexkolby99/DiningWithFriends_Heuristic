@@ -319,6 +319,7 @@ if __name__ == '__main__':
 
     for file in os.listdir(testInstancefolder):
         print(file)
+        file = 'testInstance14.json'
         instance = read_json_to_dict(os.path.join(testInstancefolder,file))
         l = instance['minNumGuests']
         u = instance['maxNumGuests']
