@@ -18,9 +18,9 @@ class branchingInformation_MeetsAtEInG_percentage:
 
     def getBranchPriority(self,model: DinnerWithFriendsSolver) -> List:
 
-        self._ks = [int(len(model.meetsAtE)*self.percentage)]
+        self._ks = [int(len(model.meetsAtEInG)*self.percentage)]
 
-        return [model.meetsAtE]
+        return [model.meetsAtEInG]
 
     def getks(self) -> List[int]:
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     u = 5
     n_events = 6
 
-    for i in [16,21,22,23,24,25,26,27,28]:
+    for i in [24,25,26,27,28]:
         try:
             n_girls = i // 2
             n_boys = i-n_girls
@@ -178,6 +178,6 @@ if __name__ == '__main__':
             localBrancher = localBranching(dwf,branchingInformer)
             performance = localBrancher.performLocalBranching(timeLimit)
 
-            performance.to_csv(f'results/properResults/15PercentageK_MeetsAtE/HeuristicSolution_size{i}.csv')
+            performance.to_csv(f'results/properResults/15PercentageK_MeetsAtEInG/HeuristicSolution_size{i}.csv')
         except Exception as e:
             print(f'{i} failed with error {e}')

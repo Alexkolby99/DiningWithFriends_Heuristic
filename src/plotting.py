@@ -56,17 +56,18 @@ for i in range(3):
         
 
 
-        df = pd.read_csv(f'results/15PercentageK_initPureSolve_meetsAtEinG_1hour/HeuristicSolution_size{files[idx]}.csv',index_col=0)
-        df2 = pd.read_csv(f'results/baseModelResults/SolverSolution_size{files[idx]}.csv',index_col=0)
+        df = pd.read_csv(f'results/baseModelResults/15PercentageK_initPureSolve_meetsAtEInG/HeuristicSolution_size{files[idx]}.csv',index_col=0)
+        df2 = pd.read_csv(f'results/properResults/PureSolveSolutions/SolverSolution_size{files[idx]}.csv',index_col=0)
+        df3 = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtE/HeuristicSolution_size{files[idx]}.csv')
         #df = pd.read_csv(f'results/baseModelResults/15PercentageK_initPureSolve_meetsAtEInG/HeuristicSolution_size{files[idx]}.csv',index_col=0)
         df['OptimalityGap'] =  (bound- df['Value'])/bound
         df2['OptimalityGap'] = (bound - df2['Value'])/bound
-        #df3['OptimalityGap'] = (bound - df3['Value'])/bound
+        df3['OptimalityGap'] = (bound - df3['Value'])/bound
 
         ax = axes[i, j]  # Get the specific subplot
-        ax.plot(df['runTime'],df['OptimalityGap'],'o',label='Heuristic')
+        ax.plot(df['runTime'],df['OptimalityGap'],'o',label='MeetsAtEinG')
         ax.plot(df2['runTime'],df2['OptimalityGap'],'o',label='PureSolve')
-        #ax.plot(df3['runTime'],df3['OptimalityGap'],'o',label='Heuristic 2')
+        ax.plot(df3['runTime'],df3['OptimalityGap'],'o',label='MeetsAtE')
         ax.set_title(f"problem of size {files[idx]}")
         ax.set_ylim(0,1)
         ax.grid(True)
@@ -81,8 +82,6 @@ for i in range(3):
         table.loc[('Solver','RunTime'),f'size_{files[idx]}'] = df2['runTime'].max().item()
         table.loc[('Solver','ObjValue'),f'size_{files[idx]}'] = df2['Value'].max().item()
         table.loc[('Solver','OptimalityGap'),f'size_{files[idx]}'] = df2['OptimalityGap'].min().item()
-
-                # Collect handles and labels from the first subplot only to avoid duplicates
 
         idx += 1
 
