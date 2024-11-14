@@ -1,0 +1,1 @@
+from src.localBranching.branchingStrategies.singleVariableBranching import SingleVariableBranching
