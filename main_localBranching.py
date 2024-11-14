@@ -1,6 +1,6 @@
-from typing import Dict, List, Literal
+from typing import Dict
 from src.localBranching import LocalBranching
-from src.localBranching.factories import SingleBranchingFixedPercentageFactory
+from src.localBranching.factories import StandardBranchingFixedPercentageFactory
 
 if __name__ == '__main__':
 
@@ -21,6 +21,6 @@ if __name__ == '__main__':
     trackingPath: str = None
     timeLimit = 3600
 
-    factory = SingleBranchingFixedPercentageFactory(data,percentage,trackData)
+    factory = StandardBranchingFixedPercentageFactory(data,percentage,trackData)
     LB_Algo = LocalBranching(factory,trackingPath)
     LB_Algo.performLocalBranching(timeLimit)

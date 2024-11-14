@@ -1,3 +1,4 @@
+from typing import List
 from src.localBranching._interfaces import Brancher_base
 from gurobipy import GRB, Model, Var
 from gurobipyModel import DinnerWithFriendsSolver
@@ -5,16 +6,20 @@ from src.localBranching.branchingStrategies.utils import LocalBranchConstraintHa
 from src.localBranching.branchingStrategies._interfaces import KStrategy_base
 
 
-class SingleVariableBranching(Brancher_base):
+class StandardVariableBranching(Brancher_base):
 
 
-    def __init__(self,model:DinnerWithFriendsSolver,variable: Var,kStrategy: KStrategy_base) -> None:
-        self.branchingVariable = variable
+    def __init__(self,model:DinnerWithFriendsSolver,variable: Var | List[Var],kStrategy: KStrategy_base,maxTimePerVariable: float = 300) -> None:
+        self.branchingVariable = [variable] if not isinstance(variable,list) else variable
         self.constraintHandler = LocalBranchConstraintHandler()
         self.model = model
         self.model.model.setParam("DegenMoves", 1)
         self.kStrategy = kStrategy
         self._initObjectiveValue = sum([v.Start for v in self.model.meets.values()])
+
+        self.iter = 0
+        self.n_variables = len(self.branchingVariable)
+        self.maxTimePerVariable = 10**16 if self.n_variables == 1 else maxTimePerVariable
 
 
     @property
@@ -32,14 +37,17 @@ class SingleVariableBranching(Brancher_base):
                 if self.model.model.Status == GRB.status.OPTIMAL:
                     return None
 
+            branchingVariable = self.branchingVariable[self.iter % self.n_variables]
             if  objective > bestObjective:
                 self.constraintHandler.removeLocalBranchingConstraint(self.model.model)
                 self.constraintHandler.addLocalBranchingConstraint(self.model.model,
-                                                                self.branchingVariable,
-                                                                self.kStrategy.getK(self.branchingVariable))
+                                                                branchingVariable,
+                                                                self.kStrategy.getK(branchingVariable))
                 self.model.model.update()
+            
+            self.iter += 1
 
-        self.model.model.setParam('timeLimit',timeLeft)
+        self.model.model.setParam('timeLimit',min(self.maxTimePerVariable,timeLeft))
 
         return self.model.model
 

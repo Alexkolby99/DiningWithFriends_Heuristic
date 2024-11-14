@@ -1,1 +1,1 @@
-from src.localBranching.branchingStrategies.singleVariableBranching import SingleVariableBranching
+from src.localBranching.branchingStrategies.standardVariableBranching import StandardVariableBranching
