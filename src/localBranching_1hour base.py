@@ -151,7 +151,7 @@ if __name__ == '__main__':
     u = 5
     n_events = 6
 
-    for i in [21,22,23,24,25,26,27,28]:
+    for i in [16]:
         try:
             n_girls = i // 2
             n_boys = i-n_girls

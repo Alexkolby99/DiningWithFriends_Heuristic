@@ -1,0 +1,1 @@
+from src.localBranching.factories.singleBranchingFixedPercentageFactory import SingleBranchingFixedPercentageFactory
