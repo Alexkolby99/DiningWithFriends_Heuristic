@@ -1,25 +1,42 @@
-from typing import List
+from typing import List,Literal
 from src.localBranching._interfaces import Brancher_base
 from gurobipy import GRB, Model, Var
 from gurobipyModel import DinnerWithFriendsSolver
 from src.localBranching.branchingStrategies.utils import LocalBranchConstraintHandler
 from src.localBranching.branchingStrategies._interfaces import KStrategy_base
+from copy import copy
+
+VARIABLES = Literal['meets','meetsAtE','meetsAtEInG']
+
 
 
 class StandardVariableBranching(Brancher_base):
 
-
-    def __init__(self,model:DinnerWithFriendsSolver,variable: Var | List[Var],kStrategy: KStrategy_base,maxTimePerVariable: float = 300) -> None:
+    def __init__(self,model:DinnerWithFriendsSolver,variable: List[VARIABLES] | VARIABLES ,kStrategy: KStrategy_base | List[KStrategy_base],maxTimePerVariable: float = 300) -> None:
+        
         self.branchingVariable = [variable] if not isinstance(variable,list) else variable
+        self.kStrategy = [kStrategy] if not isinstance(kStrategy,list) else kStrategy
+
+        assert len(self.kStrategy) == len(self.branchingVariable), 'Ensure the number of k strategies is equal to the number of variables'
+        assert len(self.kStrategy) > 0 and len(self.branchingVariable) > 0, 'Empty variable or kstrategy is given'
+
         self.constraintHandler = LocalBranchConstraintHandler()
-        self.model = model
-        self.model.model.setParam("DegenMoves", 1)
-        self.kStrategy = kStrategy
-        self._initObjectiveValue = sum([v.Start for v in self.model.meets.values()])
+        self.dwfmodel = model
+        model.model.setParam("DegenMoves", 1)
+        self.models = [model.model.copy() for _ in self.branchingVariable]
+        for _model in self.models:
+            for var in _model.getVars():
+                var.Start = model.model.getVarByName(var.VarName).Start
+
+            _model.update()
+
+        self.model = self.models[0]
+        self._initObjectiveValue = sum([v.Start for v in model.meets.values()])
 
         self.iter = 0
         self.n_variables = len(self.branchingVariable)
         self.maxTimePerVariable = 10**16 if self.n_variables == 1 else maxTimePerVariable
+        self.iterationsSinceImprovement = 0
 
 
     @property
@@ -27,27 +44,46 @@ class StandardVariableBranching(Brancher_base):
         return self._initObjectiveValue
 
     def nextBranch(self,objective: float,bestObjective: float, timeLeft: float) -> Model:
-        
+
+        timeLimit = self.maxTimePerVariable
+
         # handle if optimal solution is found, one need to check if also optimal to the full problem
         if objective is not None:
-            if self.model.model.ObjBound == self.model.model.ObjVal:
-                self.constraintHandler.removeLocalBranchingConstraint(self.model.model)
-                self.model.model.setParam("TimeLimit", 1)
-                self.model.model.optimize()
-                if self.model.model.Status == GRB.status.OPTIMAL:
+            if self.model.ObjBound == self.model.ObjVal:
+                self.constraintHandler.removeLocalBranchingConstraint(self.model)
+                self.model.setParam("TimeLimit", 1)
+                self.model.optimize()
+                if self.model.Status == GRB.status.OPTIMAL:
                     return None
 
+            if not objective > bestObjective:
+                self.iterationsSinceImprovement += 1
+            else:
+                self.iterationsSinceImprovement = 0
+                for idx,model in enumerate(self.models):
+                    if idx != max(0,(self.iter - 1)) % self.n_variables:
+                        for var in model.getVars():
+                            var.start = self.model.getVarByName(var.VarName).X
+
+                        model.update()
+                
+            if self.iterationsSinceImprovement >= self.n_variables:
+                timeLimit = 10**16
+
+            self.model = self.models[self.iter % self.n_variables]
             branchingVariable = self.branchingVariable[self.iter % self.n_variables]
-            if  objective > bestObjective:
-                self.constraintHandler.removeLocalBranchingConstraint(self.model.model)
-                self.constraintHandler.addLocalBranchingConstraint(self.model.model,
-                                                                branchingVariable,
-                                                                self.kStrategy.getK(branchingVariable))
-                self.model.model.update()
+            kStrategy = self.kStrategy[self.iter % self.n_variables]
+            
+            self.constraintHandler.removeLocalBranchingConstraint(self.model)
+            self.constraintHandler.addLocalBranchingConstraint(self.model,
+                                                            branchingVariable,
+                                                            kStrategy.getK(getattr(self.dwfmodel,branchingVariable)))
+            self.model.update()
             
             self.iter += 1
 
-        self.model.model.setParam('timeLimit',min(self.maxTimePerVariable,timeLeft))
+        self.model.setParam('timeLimit',min(timeLimit,timeLeft))
+        
 
-        return self.model.model
+        return self.model
 

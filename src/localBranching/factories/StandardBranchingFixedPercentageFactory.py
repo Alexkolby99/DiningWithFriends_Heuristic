@@ -8,17 +8,19 @@ from gurobipyModel import DinnerWithFriendsSolver
 
 class StandardBranchingFixedPercentageFactory:
 
-    def __init__(self,data: Dict,percentage: float,trackData: bool) -> None:
+    def __init__(self,data: Dict,trackData: bool) -> None:
         self.model = DinnerWithFriendsSolver()
         self.model.readData(data)
         self.model.setFeasibleSolution()
-        self.variable = [self.model.meets,self.model.meetsAtE,self.model.meetsAtEInG]
-        self.percentage = percentage
+        self.variable = ['meets','meetsAtE','meetsAtEInG']
+        self.percentage = [0.15,0.10,0.05]
         self.trackData = trackData
 
     def getBrancher(self) -> Brancher_base:
         
-        return StandardVariableBranching(self.model,self.variable,PercentageK(self.percentage))
+        kStrategies = [PercentageK(percentage) for percentage in self.percentage]
+
+        return StandardVariableBranching(self.model,self.variable,kStrategies)
 
     def getTerminater(self) -> Terminate_base:
         

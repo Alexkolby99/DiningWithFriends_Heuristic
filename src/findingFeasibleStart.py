@@ -1,7 +1,7 @@
-from gurobipyModel import DinnerWithFriendsSolver
+from gurobipyModelcopy import DinnerWithFriendsSolver
 
 
-n_girls = 7
+n_girls = 9
 n_boys = 10
 n_events = 1
 l = 3

@@ -14,16 +14,19 @@ class LocalBranchConstraintHandler:
     
     def addLocalBranchingConstraint(self,model: Model,variable: Var,k):
 
+        lengthCheck = len(variable) + 1
+
         lhs = LinExpr()
-        for v in variable.values():
-            try: 
-                val = v.X
-            except AttributeError:
-                val = v.Start
-            if val < 0.5:  # Binary variable is 0 in initial solution
-                lhs.addTerms(1, v)
-            else:  # Binary variable is 1 in initial solution
-                lhs.addConstant(1)
-                lhs.addTerms(-1, v)
+        for v in model.getVars():
+            if v.VarName[:lengthCheck] == f'{variable}[':
+                try: 
+                    val = v.X
+                except AttributeError:
+                    val = v.Start
+                if val < 0.5:  # Binary variable is 0 in initial solution
+                    lhs.addTerms(1, v)
+                else:  # Binary variable is 1 in initial solution
+                    lhs.addConstant(1)
+                    lhs.addTerms(-1, v)
         
         model.addConstr(lhs <= k, name=self.localBranchingConstraintName)

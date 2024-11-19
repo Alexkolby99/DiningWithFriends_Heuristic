@@ -4,7 +4,6 @@ import time
 from typing import Tuple
 from src.localBranching._interfaces.factory_base import Factory_base
 from gurobipy import Model
-from functools import partial
 
 class LocalBranching:
 
@@ -30,16 +29,17 @@ class LocalBranching:
             if timeLeft <= 0:
                 break
             
-            branch = self.brancher.nextBranch(objValue,self.bestObj,timeLeft)
+            newbranch = self.brancher.nextBranch(objValue,self.bestObj,timeLeft)
 
             if objValue > self.bestObj:
                 self.bestObj = objValue
 
-            if branch is None:
+            if newbranch is None:
                 break
-            
-
-        solution = None
+            else:
+                branch = newbranch
+        
+        solution = branch.getJSONSolution()
         self.terminater.saveTracking(start,self.brancher.initObjectiveValue,self.trackingPath)
         return self.bestObj, solution
 
