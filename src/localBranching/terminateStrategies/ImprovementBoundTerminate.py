@@ -8,13 +8,13 @@ from src.localBranching._interfaces import Terminate_base
 
 class InstantTerminater(Terminate_base):
 
-    def __init__(self,improvementPercentage: float,InstantThreshhold: float,trackOptimization: bool) -> None:
+    def __init__(self,improvementPercentage: float,instantThreshhold: float,trackOptimization: bool) -> None:
         self.bestSolution = None
         self.trackOptimization = trackOptimization
         self.runTimes = []
         self.objValues = []
         self.improvementFactor = 1 + improvementPercentage
-        self.InstantThreshhold = InstantThreshhold
+        self.InstantThreshhold = instantThreshhold
         self.solutionToBeat = None
 
     def callback(self, model: Model, where: int) -> None:
