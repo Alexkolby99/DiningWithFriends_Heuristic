@@ -9,15 +9,17 @@ class adaptiveK(KStrategy_base):
         self.bestSolution = None
         self.threshold = threshold
 
-    def getK(self,variable: Var,solution: float):
+    def getK(self,variable: Var,objVal: float):
 
         k = int(len(variable) * self.percentage)
 
         if self.bestSolution is None:
-            self.bestSolution = solution
+            self.bestSolution = objVal
         
-        elif solution <= self.bestSolution + self.threshold:
+        elif objVal <= self.bestSolution + self.threshold:
             k = k*self.increaseFactor
+
+        self.bestSolution = objVal
 
         return k
 

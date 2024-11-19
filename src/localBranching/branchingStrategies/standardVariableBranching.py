@@ -77,7 +77,7 @@ class StandardVariableBranching(Brancher_base):
             self.constraintHandler.removeLocalBranchingConstraint(self.model)
             self.constraintHandler.addLocalBranchingConstraint(self.model,
                                                             branchingVariable,
-                                                            kStrategy.getK(getattr(self.dwfmodel,branchingVariable)))
+                                                            kStrategy.getK(getattr(self.dwfmodel,branchingVariable)),objective)
             self.model.update()
             
             self.iter += 1
