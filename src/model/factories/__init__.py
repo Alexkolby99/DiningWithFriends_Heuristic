@@ -1,0 +1,3 @@
+from src.model.factories.maximizeMeetsFactory import MaximizeMeetsFactory
+from src.model.factories.maximizeFewestMeetsFactory import MaximizeFewestMeetsFactory
+from src.model.factories.maximizeHostsFactory import MaximizeHostsFactory

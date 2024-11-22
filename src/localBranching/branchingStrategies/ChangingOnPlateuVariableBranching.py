@@ -1,33 +1,30 @@
 from typing import List,Literal
 from src.localBranching._interfaces import Brancher_base
-from gurobipy import GRB, Model, Var
-from gurobipyModel import DinnerWithFriendsSolver
+from gurobipy import GRB, Model
+from src.model.gurobipyModel import DinnerWithFriendsSolver
 from src.localBranching.branchingStrategies.utils import LocalBranchConstraintHandler
 from src.localBranching.branchingStrategies._interfaces import KStrategy_base
-from copy import copy
 
 VARIABLES = Literal['meets','meetsAtE','meetsAtEInG']
 
-
-
-class StandardVariableBranching(Brancher_base):
+class ChangingOnPlateuVariableBranching(Brancher_base):
 
     def __init__(self,model:DinnerWithFriendsSolver,variable: List[VARIABLES] | VARIABLES ,kStrategy: KStrategy_base | List[KStrategy_base],maxTimePerVariable: float = 300) -> None:       
 
         self.branchingVariables = [variable] if not isinstance(variable,list) else variable
         self.kStrategies = [kStrategy] if not isinstance(kStrategy,list) else kStrategy
 
-        assert len(self.kStrategy) == len(self.branchingVariables), 'Ensure the number of k strategies is equal to the number of variables'
-        assert len(self.kStrategy) > 0 and len(self.branchingVariables) > 0, 'Empty variable or kstrategy is given'
+        assert len(self.kStrategies) == len(self.branchingVariables), 'Ensure the number of k strategies is equal to the number of variables'
+        assert len(self.kStrategies) > 0 and len(self.branchingVariables) > 0, 'Empty variable or kstrategy is given'
 
         self.branchingVariable = self.branchingVariables.pop()
         self.constraintHandler = LocalBranchConstraintHandler()
         self.dwfmodel = model
-        model.model.setParam("DegenMoves", 1)
+
         self.model = model.model
         self.kStrategy = self.kStrategies.pop()
         self._initObjectiveValue = sum([v.Start for v in model.meets.values()])
-        self.maxTimePerVariable = 10**16 if len(self.branchingVariables) == 0 else maxTimePerVariable
+        self.timeLimit = 10**16 if len(self.branchingVariables) == 0 else maxTimePerVariable
 
 
     @property
@@ -36,7 +33,6 @@ class StandardVariableBranching(Brancher_base):
 
     def nextBranch(self,objective: float,bestObjective: float, timeLeft: float) -> Model:
 
-        timeLimit = self.maxTimePerVariable
 
         # handle if optimal solution is found, one need to check if also optimal to the full problem
         if objective is not None:
@@ -51,16 +47,16 @@ class StandardVariableBranching(Brancher_base):
                 self.branchingVariable = self.branchingVariables.pop()   
                 self.kStrategy = self.kStrategies.pop()
                 if len(self.branchingVariables) == 0:
-                    timeLimit = 10**16             
+                    self.timeLimit = 10**16             
 
             self.constraintHandler.removeLocalBranchingConstraint(self.model)
             self.constraintHandler.addLocalBranchingConstraint(self.model,
                                                             self.branchingVariable,
-                                                            self.kStrategy.getK(getattr(self.dwfmodel,self.branchingVariable)),objective)
+                                                            self.kStrategy.getK(getattr(self.dwfmodel,self.branchingVariable),objective))
             
             self.model.update()
 
-        self.model.setParam('timeLimit',min(timeLimit,timeLeft))
+        self.model.setParam('timeLimit',min(self.timeLimit,timeLeft))
         
 
         return self.model

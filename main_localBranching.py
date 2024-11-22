@@ -1,17 +1,17 @@
 import os
 from typing import Dict
 from src.localBranching import LocalBranching
-from src.localBranching.factories import StandardBranchingFixedPercentageFactory
+from src.localBranching.factories import Factory
 
-resultFolder = os.path.join('results','properResults','15PercentageK_Combined')
-timeLimit = 30             
+resultFolder = os.path.join('results','properResults','15PercentageK_Cycling')
+timeLimit = 3600       
 trackData: bool = True
 
 if __name__ == '__main__':
         l = 4
         u = 5
         n_events = 6
-        for i in [21,22,23,24,25,26,27,28]:
+        for i in [25,26,27,28]:
 
                 n_girls = i // 2
                 n_boys = i-n_girls
@@ -28,7 +28,7 @@ if __name__ == '__main__':
                 trackingPath: str = os.path.join(resultFolder,trackingFileName)
                 solutionPath: str = os.path.join(resultFolder,solutionFileName)
 
-                factory = StandardBranchingFixedPercentageFactory(data,trackData)
+                factory = Factory(data,trackData)
                 LB_Algo = LocalBranching(factory,trackingPath)
                 bestObj, Solution = LB_Algo.performLocalBranching(timeLimit)
                 with open(solutionPath, "w") as outfile:

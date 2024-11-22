@@ -1,1 +1,1 @@
-from src.localBranching.factories.StandardBranchingFixedPercentageFactory import StandardBranchingFixedPercentageFactory
+from src.localBranching.factories.factory import Factory

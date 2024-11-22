@@ -11,8 +11,9 @@ class InstantTerminater(Terminate_base):
     def __init__(self,trackOptimization: bool) -> None:
         self.bestSolution = None
         self.trackOptimization = trackOptimization
-        self.runTimes = []
+        self.runTimes = [] 
         self.objValues = []
+        self.solutionToBeat = None # is here for interface consistency
 
     def callback(self, model: Model, where: int) -> None:
         

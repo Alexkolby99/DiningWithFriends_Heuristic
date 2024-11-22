@@ -12,14 +12,8 @@ VARIABLES = Literal['meets','meetsAtE','meetsAtEInG']
 
 class StandardVariableBranching(Brancher_base):
 
-    def __init__(self,model:DinnerWithFriendsSolver,
-                 variable: List[VARIABLES] | VARIABLES ,
-                 kStrategy: KStrategy_base | List[KStrategy_base],
-                 maxTimePerVariable: float = 60,
-                 changing: bool = False) -> None:
+    def __init__(self,model:DinnerWithFriendsSolver,variable: List[VARIABLES] | VARIABLES ,kStrategy: KStrategy_base | List[KStrategy_base],maxTimePerVariable: float = 60) -> None:
         
-        self.changing = changing
-        self.indices = 0
         self.branchingVariable = [variable] if not isinstance(variable,list) else variable
         self.kStrategies = [kStrategy] if not isinstance(kStrategy,list) else kStrategy
 
@@ -49,19 +43,6 @@ class StandardVariableBranching(Brancher_base):
     def initObjectiveValue(self) -> float:
         return self._initObjectiveValue
 
-
-    def selectIndices(self,objective,bestObjective):
-        if not self.changing:
-            if self.iterationsSinceImprovement == self.n_variables:
-                return self.indices
-            return self.iter % self.n_variables
-        
-        if not objective > bestObjective:
-            return (self.indices + 1) % self.n_variables
-
-        return self.indices
-
-
     def nextBranch(self,objective: float,bestObjective: float, timeLeft: float) -> Model:
 
         timeLimit = self.maxTimePerVariable
@@ -77,11 +58,12 @@ class StandardVariableBranching(Brancher_base):
 
             if not objective > bestObjective:
                 self.iterationsSinceImprovement += 1
+                self.kStrategy.percentage = self.kStrategy.percentage * 2
 
             else:
                 self.iterationsSinceImprovement = 0
                 for idx,model in enumerate(self.models):
-                    if idx != self.indices:
+                    if idx != max(0,(self.iter - 1)) % self.n_variables:
                         for var in model.getVars():
                             var.start = self.model.getVarByName(var.VarName).X
 
@@ -90,12 +72,10 @@ class StandardVariableBranching(Brancher_base):
             if self.iterationsSinceImprovement >= self.n_variables:
                 timeLimit = 10**16
 
-            self.indices = self.selectIndices(objective,bestObjective)
-
-            self.model = self.models[self.indices]
-            branchingVariable = self.branchingVariable[self.indices]
+            self.model = self.models[self.iter % self.n_variables]
+            branchingVariable = self.branchingVariable[self.iter % self.n_variables]
             print(branchingVariable)
-            self.kStrategy = self.kStrategies[self.indices]
+            self.kStrategy = self.kStrategies[self.iter % self.n_variables]
             
             if self.iterationsSinceImprovement < self.n_variables:
                 self.constraintHandler.removeLocalBranchingConstraint(self.model)

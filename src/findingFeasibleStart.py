@@ -1,4 +1,4 @@
-from gurobipyModelcopy import DinnerWithFriendsSolver
+from gurobipyModel_HeuristicOptimization import DinnerWithFriendsSolver
 
 
 n_girls = 9

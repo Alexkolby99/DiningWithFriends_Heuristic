@@ -6,7 +6,7 @@ import pandas as pd
 from src.localBranching._interfaces import Terminate_base
 
 
-class InstantTerminater(Terminate_base):
+class ImprovementBoundTerminater(Terminate_base):
 
     def __init__(self,improvementPercentage: float,instantThreshhold: float,trackOptimization: bool) -> None:
         self.bestSolution = None
@@ -25,11 +25,15 @@ class InstantTerminater(Terminate_base):
             if self.bestSolution is None:
                 self.bestSolution = currentValue
                 self.solutionToBeat = currentValue
+                self.runTimes.append(time.time())
+                self.objValues.append(currentValue)
 
 
             if currentValue > self.bestSolution and self.trackOptimization:
                 self.runTimes.append(time.time())
                 self.objValues.append(currentValue)
+                self.bestSolution = currentValue
+
 
             runtime = model.cbGet(GRB.Callback.RUNTIME)
 
@@ -38,6 +42,7 @@ class InstantTerminater(Terminate_base):
             if improvedEnough or improvedFastEnough:
                 self.solutionToBeat = currentValue
                 model.terminate()
+
     
     def saveTracking(self,startTime: float,initialValue: float,path: str):
 

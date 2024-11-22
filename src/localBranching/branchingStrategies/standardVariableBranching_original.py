@@ -1,7 +1,7 @@
 from typing import List
 from src.localBranching._interfaces import Brancher_base
 from gurobipy import GRB, Model, Var
-from gurobipyModel import DinnerWithFriendsSolver
+from src.model.gurobipyModel import DinnerWithFriendsSolver
 from src.localBranching.branchingStrategies.utils import LocalBranchConstraintHandler
 from src.localBranching.branchingStrategies._interfaces import KStrategy_base
 
