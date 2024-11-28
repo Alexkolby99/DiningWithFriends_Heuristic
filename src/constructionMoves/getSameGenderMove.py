@@ -28,9 +28,9 @@ class GetSameGenderMove(ConstructionMove_base):
             for g2 in groups:
                 if g2 != group:
                     for m2 in g2.members[:]:
-                        if m2.gender == lonelyGender:
+                        if m2.gender == lonelyGender and g2.getGenderCount(lonelyGender) != 2:
                             g2.removeMember(m2)
-                            if g2.size == self.min_size:
+                            if g2.size < self.min_size: #== self.min_size:
                                 # might need to handle that someone else can be swapped to here
                                 for m1 in group.members[:]:
                                     if m1.gender != lonelyGender:
@@ -47,6 +47,16 @@ class GetSameGenderMove(ConstructionMove_base):
                                         g2.removeMember(m2)
                                         group.addMember(m2)
                                         return True
+                                
+                                for m1 in group.members[:]:
+                                    if m1.gender != lonelyGender:
+                                        group.removeMember(m1)
+                                        if self.__canAdd(m2,group) and self.__canAdd(m1,g2):
+                                            g2.addMember(m1)
+                                            group.addMember(m2)
+                                            return True
+                                    
+                                    group.addMember(m1)
                             g2.addMember(m2)
         
         else: # need to swap

@@ -11,14 +11,15 @@ trackData: bool = True
 17: initialize with 7,10 (l,u)=(3,4)
 18: initialize with 9,9 (l,u)=(3,4)
 19: initialize with 8,11 (l,u)=(3,4)
-20: initialize with 10,10 (l,u)=(4,4)
 '''
+
+
 
 if __name__ == '__main__':
         l = 4
-        u = 4
-        n_events = 3
-        for i in [28,20,21,22,23,24,25,26,27,28]:
+        u = 5
+        n_events = 6
+        for i in [16,20,21,22,23,24,25,26,27,28,29,30]:
 
                 n_girls = i // 2
                 n_boys = i-n_girls

@@ -95,10 +95,10 @@ class CascadeGrouping:
     def __init__(self,n_girls,n_boys,l,u):
         self.n_girls = n_girls
         self.n_boys = n_boys
-        self.u = u
         self.l = l
-        self.m_lower = int((n_girls+n_boys) // l)
-        self.m_upper = int(np.ceil((n_girls+n_boys) / u))
+        self.u = l if (self.n_girls + self.n_boys) % self.l == 0 else u
+        self.m_lower = int((n_girls+n_boys) // self.l)
+        self.m_upper = int(np.ceil((n_girls+n_boys) / self.u))
         self.initConstructer = standardInitialConstructer() if self.l > 3 else solverInitialConstructer()
 
 
@@ -323,7 +323,7 @@ class CascadeGrouping:
             for g in groups:
                 if g.getGenderCount(0) == 1 or g.getGenderCount(1) == 1:
                     if g.getGenderCount(0) == 1:
-                        if len(girl_groupCounter) >= sum(girl_groupCounter) // 2:
+                        if len(girl_groupCounter) > sum(girl_groupCounter) // 2:
                             moves =  moves = [RemoveLonelyGenderMove(self.l,self.u),SwapLonelyGenderMove(self.l,self.u)]
                         else:
                             moves = [GetSameGenderMove(self.l,self.u)]

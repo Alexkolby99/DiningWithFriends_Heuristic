@@ -1,1 +1,2 @@
 from src.localBranching.branchingStrategies.kStrategies.percentageK import PercentageK
+from src.localBranching.branchingStrategies.kStrategies.fixedK import FixedK
