@@ -7,8 +7,6 @@ import json as js
 from random import shuffle
 from src.cascadeGrouping import CascadeGrouping
 
-bestSolution_callBack = 0
-
 class DinnerWithFriendsSolver:
     def __init__(self,modelFactory):
         self.model = None  # Gurobi model
@@ -32,6 +30,7 @@ class DinnerWithFriendsSolver:
         self.numOfEvents = 0  # Number of events
         self.timeLimit = 0  # Time limit for solving
         self.modelFactory = modelFactory
+        self.bestSolutionCallback = 0
 
     def readData(self, filenameOrDict: str):
         # Read the data from the JSON file
@@ -97,37 +96,44 @@ class DinnerWithFriendsSolver:
     def setFeasibleSolution(self):
 
         events = self.constructionHeuristic.constructSolution(self.numOfEvents)
+        if events is not None:
 
-        self.model.update() 
-        for v in self.model.getVars():
-            v.start = 0
+            self.model.update() 
+            for v in self.model.getVars():
+                v.start = 0
 
-        for eventNum,sol in enumerate(events[1:]):
-            for gNum,g in enumerate(sol.groups):
-                host = self.Kids[g.host.identifier]
-                if len(g.members) != 0:
-                    self.groupInUse[gNum,eventNum].start = 1
-                
-                self.isHost[host,eventNum].start = 1
+            for eventNum,sol in enumerate(events[1:]):
+                for gNum,g in enumerate(sol.groups):
+                    host = self.Kids[g.host.identifier]
+                    if len(g.members) != 0:
+                        self.groupInUse[gNum,eventNum].start = 1
+                    
+                    self.isHost[host,eventNum].start = 1
 
-                for m1 in g.members:
-                    if self.Kids[m1.identifier] != host:
-                        self.visits[host,self.Kids[m1.identifier],eventNum].start = 1
-                    self.isInGroupAtE[self.Kids[m1.identifier],gNum,eventNum].start = 1
-                    for m2 in g.members:
-                        if m1 != m2:
-                            kid1 = self.Kids[min(m1.identifier,m2.identifier)]
-                            kid2 = self.Kids[max(m1.identifier,m2.identifier)]
-                            self.meets[kid1,kid2].start = 1
-                            self.meetsAtE[kid1,kid2,eventNum].start = 1
-                            self.meetsAtEInG[kid1,kid2,gNum,eventNum].start = 1
-        self.model.update()            
+                    for m1 in g.members:
+                        if self.Kids[m1.identifier] != host:
+                            self.visits[host,self.Kids[m1.identifier],eventNum].start = 1
+                        self.isInGroupAtE[self.Kids[m1.identifier],gNum,eventNum].start = 1
+                        for m2 in g.members:
+                            if m1 != m2:
+                                kid1 = self.Kids[min(m1.identifier,m2.identifier)]
+                                kid2 = self.Kids[max(m1.identifier,m2.identifier)]
+                                self.meets[kid1,kid2].start = 1
+                                self.meetsAtE[kid1,kid2,eventNum].start = 1
+                                self.meetsAtEInG[kid1,kid2,gNum,eventNum].start = 1
+            self.model.update()            
 
     def buildModel(self):
         # Maximize the total number of distinct pair meetings
         self.modelFactory.setObjectiveFunction(self)
         self.modelFactory.setAdditionalConstraints(self)
 
+
+        for pair in self.Pairs:
+            i,j = pair
+            for e in self.Events:
+                if e != len(self.Events)-1:
+                    self.model.addConstr(self.meetsAtE[i,j,e] + self.meetsAtE[i,j,e+1] <= 1)
 
         # Constraints ensuring each kid attends exactly one group at each event
         for i in self.Kids:
@@ -224,18 +230,16 @@ class DinnerWithFriendsSolver:
 
         def callback(model,where):
 
-            global bestSolution_callBack
-
             if where == GRB.Callback.MIPSOL:
 
                 currentValue = model.cbGet(GRB.Callback.MIPSOL_OBJ)
 
-                if currentValue > bestSolution_callBack:
+                if currentValue > self.bestSolutionCallback:
 
                     runTime = time.time()
                     objValues.append(currentValue)
                     runTimes.append(runTime)
-                    bestSolution_callBack = currentValue 
+                    self.bestSolutionCallback = currentValue 
 
         self.model.setParam("TimeLimit", timeLimit)
         self.model.optimize(callback)

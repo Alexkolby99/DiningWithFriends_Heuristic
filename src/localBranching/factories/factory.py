@@ -15,8 +15,8 @@ class Factory:
         self.model.model.setParam("DegenMoves", 1) # avoid these moves since takes a while without much benefits when not solving for optimality
         #self.model.model.setParam('MIPFocus', 1) # focus on finding good feasible solutions rather than optimality
         self.model.setFeasibleSolution()
-        self.variable = ['meetsAtEInG','meetsAtE','meets']
-        self.percentage = [0.15,0.15,0.15]
+        self.variable = ['meetsAtEInG']#['meetsAtEInG','meetsAtE','meets']
+        self.percentage = [0.01]#0.01 for meetsAtEInG#[0.15,0.15,0.15]
         self.trackData = trackData
         self.maxTimePerVariable = 30
         self.changing = False
@@ -31,4 +31,4 @@ class Factory:
 
     def getTerminater(self) -> Terminate_base:
         
-        return ImprovementBoundTerminater(self.improvementPercentage,self.instantThreshhold,self.trackData)#InstantTerminater(self.trackData)
+        return InstantTerminater(self.trackData)#ImprovementBoundTerminater(self.improvementPercentage,self.instantThreshhold,self.trackData)#

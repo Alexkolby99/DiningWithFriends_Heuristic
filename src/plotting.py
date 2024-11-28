@@ -56,10 +56,10 @@ for i in range(3):
         
 
 
-        df = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtEInG/HeuristicSolution_size{files[idx]}.csv',index_col=0)
-        df2 = pd.read_csv(f'results/properResults/PureSolveSolutions/SolverSolution_size{files[idx]}.csv',index_col=0)
-        df3 = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtE/HeuristicSolution_size{files[idx]}.csv',index_col=0)
-        df4 = pd.read_csv(f'results/properResults/15PercentageK_Meets/HeuristicSolution_size{files[idx]}.csv',index_col=0)
+        df = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtEInG/Tracking_size{files[idx]}.csv',index_col=0)
+        df2 = pd.read_csv(f'results/properResults/PureSolveSolutions/Tracking_size{files[idx]}.csv',index_col=0)
+        df3 = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtE/Tracking_size{files[idx]}.csv',index_col=0)
+        df4 = pd.read_csv(f'results/properResults/15PercentageK_Meets/Tracking_size{files[idx]}.csv',index_col=0)
         df['OptimalityGap'] =  (bound- df['Value'])/bound
         df2['OptimalityGap'] = (bound - df2['Value'])/bound
         df3['OptimalityGap'] = (bound - df3['Value'])/bound
@@ -73,6 +73,19 @@ for i in range(3):
         ax.set_title(f"problem of size {files[idx]}")
         ax.set_ylim(0,1)
         ax.grid(True)
+        ax.set_ylabel('')
+        ax.set_xlabel('')
+        if i == 1 and j == 0:
+            ax.set_ylabel('OptimalityGap %')
+
+        if i == 2 and j == 1:
+            ax.set_xlabel('Time in seconds')
+
+        if j % 3 != 0:
+            ax.set_yticklabels([])
+
+        if i != 2:
+            ax.set_xticklabels([])
 
         # table.loc[('Bound'),f'size_{files[idx]}'] = bound
         # table.loc[('Heuristic','RunTime'),f'size_{files[idx]}'] = df['runTime'].max().item()
@@ -90,6 +103,7 @@ for i in range(3):
 handles, labels = axes[0,0].get_legend_handles_labels()
 fig.legend(handles, labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, 0.92))
 
+plt.tight_layout(rect=[0, 0, 1, 0.9])
 plt.show()
 
 

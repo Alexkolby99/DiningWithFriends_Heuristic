@@ -15,7 +15,7 @@ class FindHostWithSwapsMove(ConstructionMove_base):
         
         Returns True if the move was successful, False otherwise.
         """
-        for m in group.members[:]:
+        for m in group.members[::-1]:
             if group.host is None:
                 if m.groups[group.t-1].host != m:
                     group.host = m

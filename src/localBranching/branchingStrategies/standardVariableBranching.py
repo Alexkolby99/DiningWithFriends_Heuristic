@@ -96,15 +96,15 @@ class StandardVariableBranching(Brancher_base):
             branchingVariable = self.branchingVariable[self.indices]
             print(branchingVariable)
             self.kStrategy = self.kStrategies[self.indices]
-            
+                
             if self.iterationsSinceImprovement < self.n_variables:
                 self.constraintHandler.removeLocalBranchingConstraint(self.model)
                 self.constraintHandler.addLocalBranchingConstraint(self.model,
                                                                 branchingVariable,
                                                                 self.kStrategy.getK(getattr(self.dwfmodel,branchingVariable),objective))
                 self.model.update()
-            
-            self.iter += 1
+                
+                self.iter += 1
 
         self.model.setParam('timeLimit',min(timeLimit,timeLeft))
         

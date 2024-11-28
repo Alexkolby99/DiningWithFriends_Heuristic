@@ -6,9 +6,91 @@ from src.student import Student
 from src.group import Group
 from src.event import Event
 from src.constructionMoves import RemoveLonelyGenderMove, SwapLonelyGenderMove, GetSameGenderMove,FindHostWithSwapsMove
+from gurobipyModel_HeuristicOptimization import DinnerWithFriendsSolver
+
+class solverInitialConstructer:
+    def __init__(self) -> None:
+        self.solver = DinnerWithFriendsSolver()
+
+    def getInitialConstruction(self,girls,boys,u,m_upper,l):
+        data = {   "n_girls": len(girls),
+                    "n_boys": len(boys),
+                    "minNumGuests": l,
+                    "maxNumGuests": u
+                    }
+        
+        self.solver.readData(data)
+        self.solver.solveModel(5)
+
+        m_upper = int(sum([x.X for x in self.solver.groupInUse.values()]))
+        
+        G = np.zeros((u,m_upper),dtype=Student)
+
+        G[:] = None
+
+        nextEmptyPlace = {i: 0 for i in range(m_upper)}
+        genderToListMapping = {'girl': girls,'boy': boys}
+
+        for var in self.solver.isInGroup.values():
+            if var.X == 0:
+                continue
+            person,group = var.VarName.split('[')[1].split(',')
+            group = int(group.split(']')[0])
+            gender,id = person.split('_')
+            id = int(id)
+            idx = nextEmptyPlace[group]
+            G[idx,group] = genderToListMapping[gender][id]
+            nextEmptyPlace[group] += 1
+        
+        # x = G[:,1].copy()
+        # G[:,1] = G[:,2]
+        # G[:,2] = x
+        # G[:,3] = sorted(G[:,3],key=lambda x: -x.gender)
+        # G[:,4] = sorted(G[:,4],key=lambda x: -x.gender)
+        return G
+
+class standardInitialConstructer:
+
+    def getInitialConstruction(self,girls,boys,u,m_upper,l):
+        G = np.zeros((u,m_upper),dtype=Student)
+
+
+        genderWithMost = girls.copy() if len(girls) > len(boys) else boys.copy()
+        genderWithLeast = girls.copy() if len(girls) <= len(boys) else boys.copy()
+
+        genderWithMost_UniqueGroupCount = min(len(genderWithMost) // 2,m_upper)
+        genderWithLeast_UniqueGroupCount = min(len(genderWithLeast) // 2,m_upper)
+
+
+        G[0,:genderWithMost_UniqueGroupCount] =genderWithMost [:genderWithMost_UniqueGroupCount]
+        G[1,:genderWithMost_UniqueGroupCount] = genderWithMost[genderWithMost_UniqueGroupCount:genderWithMost_UniqueGroupCount*2]
+
+        genderWithMost = genderWithMost[genderWithMost_UniqueGroupCount*2:]
+
+        G[2,:genderWithLeast_UniqueGroupCount] = genderWithLeast[:genderWithLeast_UniqueGroupCount]
+        G[3,:genderWithLeast_UniqueGroupCount] = genderWithLeast[genderWithLeast_UniqueGroupCount:genderWithLeast_UniqueGroupCount*2]
+
+        genderWithLeast = genderWithLeast[genderWithLeast_UniqueGroupCount*2:]
+
+        for i in range(m_upper)[::-1]:
+            if np.count_nonzero(G[:,i]) < 3:     
+                G[2,i] = genderWithMost.pop()
+                G[3,i] = genderWithMost.pop()
+            else:
+                break
+
+        for i in range(4,u):
+            for j in range(m_upper):
+                if len(genderWithLeast) != 0:
+                    G[i,j] = genderWithLeast.pop()
+                elif len(genderWithMost) != 0:
+                    G[i,j] = genderWithMost.pop()
+                else:
+                    G[i,j] = None
+
+        return G
 
 class CascadeGrouping:
-
 
     def __init__(self,n_girls,n_boys,l,u):
         self.n_girls = n_girls
@@ -17,44 +99,24 @@ class CascadeGrouping:
         self.l = l
         self.m_lower = int((n_girls+n_boys) // l)
         self.m_upper = int(np.ceil((n_girls+n_boys) / u))
+        self.initConstructer = standardInitialConstructer() if self.l > 3 else solverInitialConstructer()
 
 
     def constructSolution(self,n_events,validate = True):
         
-        events = [Event(0)]
-        girls = [Student(i,0,n_events+1) for i in range(self.n_girls)]
-        boys = [Student(i,1,n_events+1) for i in range(self.n_girls,self.n_girls+self.n_boys)]
+        try:
+            events = [Event(0)]
+            girls = [Student(i,0,n_events+1) for i in range(self.n_girls)]
+            boys = [Student(i,1,n_events+1) for i in range(self.n_girls,self.n_girls+self.n_boys)]
 
-        leastGender = 0  if self.n_girls < self.n_boys else 1
+            leastGender = 0  if self.n_girls < self.n_boys else 1
 
-        groupMatrix = self.constructGroupMatrix(girls,boys)
-        groups = self.getGroupsFromMatrix(groupMatrix,1)
-        for g in groups:
-            self.findHosts(g)
+            groupMatrix = self.constructGroupMatrix(girls,boys)
+            groups = self.getGroupsFromMatrix(groupMatrix,1)
+            for g in groups:
+                self.findHosts(g)
 
-        event = Event(1)
-        for g in groups:
-            event.addGroup(g)
-            
-        if validate:
-            if not self.__validEvent(event):
-                raise Exception
-
-        events.append(event)
-
-        eventsSinceCascading =self.l*2+1
-
-        for e in range(2,n_events+1):
-            if eventsSinceCascading < self.l*2:
-                groups = self.makeGroupsFromEarlier(events[e-2], e)
-                for g in groups:
-                    if g.host is None:
-                        groups = self.cascadeFormerGroup(leastGender,groupMatrix,e)
-            else:
-                groups = self.cascadeFormerGroup(leastGender, groupMatrix, e)
-                eventsSinceCascading = 1
-
-            event = Event(e)
+            event = Event(1)
             for g in groups:
                 event.addGroup(g)
                 
@@ -63,11 +125,36 @@ class CascadeGrouping:
                     raise Exception
 
             events.append(event)
-            eventsSinceCascading += 1
 
-            groupMatrix = self.getMatrixFromGroups(groups,leastGender)
+            eventsSinceCascading =self.l*2+1
 
-        return events
+            for e in range(2,n_events+1):
+                if eventsSinceCascading < self.l*2:
+                    groups = self.makeGroupsFromEarlier(events[e-2], e)
+                    for g in groups:
+                        if g.host is None:
+                            groups = self.cascadeFormerGroup(leastGender,groupMatrix,e)
+                else:
+                    groups = self.cascadeFormerGroup(leastGender, groupMatrix, e)
+                    eventsSinceCascading = 1
+
+                event = Event(e)
+                for g in groups:
+                    event.addGroup(g)
+                    
+                if validate:
+                    if not self.__validEvent(event):
+                        raise Exception
+
+                events.append(event)
+                eventsSinceCascading += 1
+
+                groupMatrix = self.getMatrixFromGroups(groups,leastGender)
+
+            return events
+        except:
+            print('Unable to find a solution')
+            return None
 
     def cascadeFormerGroup(self, leastGender, groupMatrix, e):
         groupMatrix = self.cascadeGroupMatrix(groupMatrix)
@@ -93,9 +180,15 @@ class CascadeGrouping:
                 group.addMember(m)
             groups.append(group)
 
+        swapMove = FindHostWithSwapsMove(self.l,self.u)
+
         for g in groups:
-            _ = self.findHosts(g)
-        
+            status = self.findHosts(g)
+            if status == False:
+                status = swapMove.performMove(g,groups) 
+                if status == True:
+                    _ = self.findHosts(g)  
+
         return groups
 
     def getMatrixFromGroups(self,groups,leastGender):
@@ -109,6 +202,8 @@ class CascadeGrouping:
 
             if len(leastGender_group) == 0:
                 G[:len(maxGender_group),i] = maxGender_group
+            elif len(maxGender_group) == 0:
+                G[:len(leastGender_group),i] = leastGender_group
             else:
 
                 G[0,i] = maxGender_group.pop()
@@ -121,45 +216,73 @@ class CascadeGrouping:
         return G
 
     def constructGroupMatrix(self,girls,boys):
-        
 
-        G = np.zeros((self.u,self.m_upper),dtype=Student)
+        leastGender = 1 if len(boys) < len(girls) else 0
 
+        G = self.initConstructer.getInitialConstruction(girls,boys,self.u,self.m_upper,self.l)
 
-        genderWithMost = girls.copy() if self.n_girls > self.n_boys else boys.copy()
-        genderWithLeast = girls.copy() if self.n_girls <= self.n_boys else boys.copy()
+        for i in range(self.m_upper):
+            if leastGender == 0:
+                G[:,i] = sorted(G[:,i],key=lambda x: -x.gender if x is not None else 10000)
+            else:
+                G[:,i] = sorted(G[:,i],key=lambda x: x.gender if x is not None else 10000)
+        # Count non-None values in each column
+        non_none_counts = np.array([(col != None).sum() for col in G.T])  # Transpose to work with columns
 
-        genderWithMost_UniqueGroupCount = min(len(genderWithMost) // 2,self.m_upper)
-        genderWithLeast_UniqueGroupCount = min(len(genderWithLeast) // 2,self.m_upper)
+        # Get the sorted column indices based on non-None counts
+        sorted_indices = np.argsort(non_none_counts)
 
+        # Reorder columns
+        G= G[:, sorted_indices]
 
-        G[0,:genderWithMost_UniqueGroupCount] =genderWithMost [:genderWithMost_UniqueGroupCount]
-        G[1,:genderWithMost_UniqueGroupCount] = genderWithMost[genderWithMost_UniqueGroupCount:genderWithMost_UniqueGroupCount*2]
-
-        genderWithMost = genderWithMost[genderWithMost_UniqueGroupCount*2:]
-
-        G[2,:genderWithLeast_UniqueGroupCount] = genderWithLeast[:genderWithLeast_UniqueGroupCount]
-        G[3,:genderWithLeast_UniqueGroupCount] = genderWithLeast[genderWithLeast_UniqueGroupCount:genderWithLeast_UniqueGroupCount*2]
-
-        genderWithLeast = genderWithLeast[genderWithLeast_UniqueGroupCount*2:]
-
-        for i in range(self.m_upper)[::-1]:
-            if np.count_nonzero(G[:,i]) < 3:     
-                G[2,i] = genderWithMost.pop()
-                G[3,i] = genderWithMost.pop()
+        for i in range(self.m_upper-1):
+            if non_none_counts[i] <= 3:
+                if G[0,i].gender == leastGender:
+                    if non_none_counts[i+1] <= 3 and G[0,i+1].gender != leastGender:
+                        group_copy = G[:,i].copy()
+                        G[:,i] = G[:,i+1] 
+                        G[:,i+1] = group_copy
             else:
                 break
 
-        for i in range(4,self.u):
-            for j in range(self.m_upper):
-                if len(genderWithLeast) != 0:
-                    G[i,j] = genderWithLeast.pop()
-                elif len(genderWithMost) != 0:
-                    G[i,j] = genderWithMost.pop()
-                else:
-                    G[i,j] = None
-
         return G
+        # G = np.zeros((self.u,self.m_upper),dtype=Student)
+
+
+        # genderWithMost = girls.copy() if self.n_girls > self.n_boys else boys.copy()
+        # genderWithLeast = girls.copy() if self.n_girls <= self.n_boys else boys.copy()
+
+        # genderWithMost_UniqueGroupCount = min(len(genderWithMost) // 2,self.m_upper)
+        # genderWithLeast_UniqueGroupCount = min(len(genderWithLeast) // 2,self.m_upper)
+
+
+        # G[0,:genderWithMost_UniqueGroupCount] =genderWithMost [:genderWithMost_UniqueGroupCount]
+        # G[1,:genderWithMost_UniqueGroupCount] = genderWithMost[genderWithMost_UniqueGroupCount:genderWithMost_UniqueGroupCount*2]
+
+        # genderWithMost = genderWithMost[genderWithMost_UniqueGroupCount*2:]
+
+        # G[2,:genderWithLeast_UniqueGroupCount] = genderWithLeast[:genderWithLeast_UniqueGroupCount]
+        # G[3,:genderWithLeast_UniqueGroupCount] = genderWithLeast[genderWithLeast_UniqueGroupCount:genderWithLeast_UniqueGroupCount*2]
+
+        # genderWithLeast = genderWithLeast[genderWithLeast_UniqueGroupCount*2:]
+
+        # for i in range(self.m_upper)[::-1]:
+        #     if np.count_nonzero(G[:,i]) < 3:     
+        #         G[2,i] = genderWithMost.pop()
+        #         G[3,i] = genderWithMost.pop()
+        #     else:
+        #         break
+
+        # for i in range(4,self.u):
+        #     for j in range(self.m_upper):
+        #         if len(genderWithLeast) != 0:
+        #             G[i,j] = genderWithLeast.pop()
+        #         elif len(genderWithMost) != 0:
+        #             G[i,j] = genderWithMost.pop()
+        #         else:
+        #             G[i,j] = None
+
+        # return G
 
     def cascadeGroupMatrix(self,groupMatrix):
         
@@ -188,30 +311,40 @@ class CascadeGrouping:
         # this is where we need to be careful insertmove should check if can be removed from the group as well
         # then there need to be a swap move, that swaps persons
 
-        leastGender_groupCounter = np.array([g.getGenderCount(leastGender) for g in groups if not g.getGenderCount(leastGender) == 0])
+        girl_groupCounter = np.array([g.getGenderCount(0) for g in groups if not g.getGenderCount(0) == 0])
+        boy_groupCounter = np.array([g.getGenderCount(1) for g in groups if not g.getGenderCount(1) == 0])
 
-        if np.all(leastGender_groupCounter > 1):
+        if np.all(girl_groupCounter > 1) and np.all(boy_groupCounter > 1):
                 return
 
         maxIters = 0
 
-        while min(leastGender_groupCounter) < 2 and maxIters < self.m_upper:
+        while (min(girl_groupCounter) < 2 or min(boy_groupCounter) < 2) and maxIters < self.m_upper:
             for g in groups:
-                if g.getGenderCount(leastGender) == 1:
-                    if len(leastGender_groupCounter) > sum(leastGender_groupCounter) // 2:
-                        moves =  moves = [RemoveLonelyGenderMove(self.l,self.u),SwapLonelyGenderMove(self.l,self.u)]
+                if g.getGenderCount(0) == 1 or g.getGenderCount(1) == 1:
+                    if g.getGenderCount(0) == 1:
+                        if len(girl_groupCounter) >= sum(girl_groupCounter) // 2:
+                            moves =  moves = [RemoveLonelyGenderMove(self.l,self.u),SwapLonelyGenderMove(self.l,self.u)]
+                        else:
+                            moves = [GetSameGenderMove(self.l,self.u)]
                     else:
-                        moves = [GetSameGenderMove(self.l,self.u)]
+                        if len(boy_groupCounter) >= sum(boy_groupCounter) // 2:
+                            moves =  moves = [RemoveLonelyGenderMove(self.l,self.u),SwapLonelyGenderMove(self.l,self.u)]
+                        else:
+                            moves = [GetSameGenderMove(self.l,self.u)]
                     for move in moves:
                         status = move.performMove(g,groups)
                         if status == True:
-                            leastGender_groupCounter = np.array([g.getGenderCount(leastGender) for g in groups if not g.getGenderCount(leastGender) == 0])
+                                                            
+                            girl_groupCounter = np.array([g.getGenderCount(0) for g in groups if not g.getGenderCount(0) == 0])
+                            boy_groupCounter = np.array([g.getGenderCount(1) for g in groups if not g.getGenderCount(1) == 0])
+                            #girl_groupCounter = np.array([g.getGenderCount(leastGender) for g in groups if not g.getGenderCount(leastGender) == 0])
                             break
-            
-            leastGender_groupCounter = np.array([g.getGenderCount(leastGender) for g in groups if not g.getGenderCount(leastGender) == 0])
+
+
             maxIters += 1
         
-        assert min(leastGender_groupCounter) >= 2, 'Unable to repair the gender grouping'
+        assert min(girl_groupCounter) >= 2, 'Unable to repair the gender grouping'
 
 
     def findHosts(self,group):

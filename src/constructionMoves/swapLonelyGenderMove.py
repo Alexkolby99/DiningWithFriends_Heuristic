@@ -31,7 +31,7 @@ class SwapLonelyGenderMove(ConstructionMove_base):
                     for g2 in groups:
                         if g2 != group:
                             for m2 in g2.members[:]:
-                                if m2.gender != lonelyGender:
+                                if m2.gender != lonelyGender and g2.getGenderCount(m2.gender) != 2:
                                     g2.removeMember(m2)
                                     if self.__canAdd(student,g2) and self.__canAdd(m2,group):
                                         g2.addMember(student)

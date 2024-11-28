@@ -5,7 +5,6 @@ import gurobipy as gp
 from gurobipy import GRB
 import json as js
 from random import shuffle
-from src.cascadeGrouping import CascadeGrouping
 
 bestSolution_callBack = 0
 
@@ -19,7 +18,6 @@ class DinnerWithFriendsSolver:
         self.groupInUse = None  # Decision variables for whether a group is in use at an event
         self.visits = None  # Decision variables for whether one pupil visits another at an event
         self.isHost = None  # Decision variables for whether a pupil is hosting an event
-        self.Events = []  # Events range
         self.Kids = []  # List of all children
         self.Groups = []  # Groups range
         self.Pairs = []  # List of all distinct pairs of children
@@ -46,23 +44,16 @@ class DinnerWithFriendsSolver:
         else:
             raise ValueError('MakeSure the input is either a dict or a correctly specified path')
         
-        assert sorted(classData.keys()) == ['maxNumGuests','minNumGuests','n_boys','n_girls','numOfEvents'], "Given input does not contain the necessary keys, ['minNumGuests','maxNumGuests','n_boys','n_girls','numOfEvents']"
+        assert sorted(classData.keys()) == ['maxNumGuests','minNumGuests','n_boys','n_girls'], "Given input does not contain the necessary keys, ['minNumGuests','maxNumGuests','n_boys','n_girls','numOfEvents']"
 
         self.Girls = [f'girl_{i}' for i in range(classData['n_girls'])]
         self.Boys = [f'boy_{i}' for i in range(classData['n_boys'])]
-        # if classData['shuffle_kids']:
-        #     shuffle(self.Girls)
-        #     shuffle(self.Boys)
         self.Kids = self.Girls + self.Boys
         self.numKids = len(self.Kids)
         self.minNumGuests = classData['minNumGuests']
         self.maxNumGuests = classData['maxNumGuests']
-        self.numOfEvents = classData['numOfEvents']
         self.numGroups = ceil(self.numKids / self.minNumGuests)
-        self.Events = range(0, self.numOfEvents)
         self.Groups = range(0, self.numGroups)
-        # self.timeLimit = classData['timeLimitInSeconds']
-        self.constructionHeuristic = CascadeGrouping(len(self.Girls),len(self.Boys),self.minNumGuests,self.maxNumGuests)
         # Create all unique pairs of kids
         for i in range(0, len(self.Kids) - 1):
             for j in range(i + 1, len(self.Kids)):
@@ -142,29 +133,10 @@ class DinnerWithFriendsSolver:
 
     def solveModel(self,timeLimit):
 
-
-        objValues = []
-        runTimes = []
-
-        def callback(model,where):
-
-            global bestSolution_callBack
-
-            if where == GRB.Callback.MIPSOL:
-
-                currentValue = model.cbGet(GRB.Callback.MIPSOL_OBJ)
-
-                if currentValue > bestSolution_callBack:
-
-                    runTime = time.time()
-                    objValues.append(currentValue)
-                    runTimes.append(runTime)
-                    bestSolution_callBack = currentValue 
-
         self.model.setParam("TimeLimit", timeLimit)
-        self.model.optimize(callback)
+        self.model.optimize()
 
-        return objValues,runTimes
+        return self.model
 if __name__ == '__main__':
     dwf = DinnerWithFriendsSolver()
     dwf.readData('exampleData.json')
