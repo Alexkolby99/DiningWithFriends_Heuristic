@@ -37,13 +37,13 @@ colors = [
 ]
 
 
-fig, axes = plt.subplots(3, 3, figsize=(10, 10))  # Adjust figsize as needed
-files = [16,21,22,23,24,25,26,27,28]
+fig, axes = plt.subplots(3, 5, figsize=(10, 10))  # Adjust figsize as needed
+files = [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
 idx = 0
 
 
 for i in range(3):
-    for j in range(3):
+    for j in range(5):
 
         e = 6
         l = 4
@@ -56,17 +56,17 @@ for i in range(3):
         
 
 
-        df = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtEInG/Tracking_size{files[idx]}.csv',index_col=0)
+        df = pd.read_csv(f'results/properResults/MeetsAtEInG/Tracking_size{files[idx]}.csv',index_col=0)
         df2 = pd.read_csv(f'results/properResults/PureSolveSolutions/Tracking_size{files[idx]}.csv',index_col=0)
-        df3 = pd.read_csv(f'results/properResults/15PercentageK_MeetsAtE/Tracking_size{files[idx]}.csv',index_col=0)
-        df4 = pd.read_csv(f'results/properResults/15PercentageK_Meets/Tracking_size{files[idx]}.csv',index_col=0)
+        df3 = pd.read_csv(f'results/properResults/MeetsAtE/Tracking_size{files[idx]}.csv',index_col=0)
+        df4 = pd.read_csv(f'results/properResults/Meets/Tracking_size{files[idx]}.csv',index_col=0)
         df['OptimalityGap'] =  (bound- df['Value'])/bound
         df2['OptimalityGap'] = (bound - df2['Value'])/bound
         df3['OptimalityGap'] = (bound - df3['Value'])/bound
         df4['OptimalityGap'] = (bound - df4['Value'])/bound
 
         ax = axes[i, j]  # Get the specific subplot
-        ax.plot(df2['runTime'],df2['OptimalityGap'],'o',label='PureSolve',alpha=0.5,markersize = 5)
+        ax.plot(df2['runTime'],df2['OptimalityGap'],'o',label='PureSolve',alpha=1,markersize = 5,color='black')
         ax.plot(df['runTime'],df['OptimalityGap'],'o',label='MeetsAtEinG',alpha=0.5,markersize = 5)
         ax.plot(df3['runTime'],df3['OptimalityGap'],'o',label='MeetsAtE',alpha=0.5,markersize = 5)
         ax.plot(df4['runTime'],df4['OptimalityGap'],'o',label='Meets',alpha=0.5,markersize = 5)
@@ -78,10 +78,10 @@ for i in range(3):
         if i == 1 and j == 0:
             ax.set_ylabel('OptimalityGap %')
 
-        if i == 2 and j == 1:
+        if i == 2 and j == 2:
             ax.set_xlabel('Time in seconds')
 
-        if j % 3 != 0:
+        if j % 5 != 0:
             ax.set_yticklabels([])
 
         if i != 2:

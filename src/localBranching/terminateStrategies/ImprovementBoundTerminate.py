@@ -17,8 +17,15 @@ class ImprovementBoundTerminater(Terminate_base):
         self.InstantThreshhold = instantThreshhold
         self.solutionToBeat = None
 
+    def updateSolutionToBeat(self,objValue,runTime):
+
+        if self.solutionToBeat is None:
+            self.solutionToBeat = objValue
+        elif objValue >= self.solutionToBeat*self.improvementFactor or runTime < self.InstantThreshhold:
+            self.solutionToBeat = objValue
+
     def callback(self, model: Model, where: int) -> None:
-        
+        # this has changed but minor no need to rerun
         if where == GRB.Callback.MIPSOL:
 
             currentValue = model.cbGet(GRB.Callback.MIPSOL_OBJ)
@@ -29,19 +36,19 @@ class ImprovementBoundTerminater(Terminate_base):
                 self.objValues.append(currentValue)
 
 
-            if currentValue > self.bestSolution and self.trackOptimization:
-                self.runTimes.append(time.time())
-                self.objValues.append(currentValue)
+            if currentValue > self.bestSolution:
+                if self.trackOptimization:
+                    self.runTimes.append(time.time())
+                    self.objValues.append(currentValue)
+                
+                runtime = model.cbGet(GRB.Callback.RUNTIME)
+
+                improvedEnough = currentValue > self.solutionToBeat * self.improvementFactor
+                improvedFastEnough = (runtime < self.InstantThreshhold and currentValue > self.bestSolution)
                 self.bestSolution = currentValue
-
-
-            runtime = model.cbGet(GRB.Callback.RUNTIME)
-
-            improvedEnough = currentValue > self.solutionToBeat * self.improvementFactor
-            improvedFastEnough = (runtime < self.InstantThreshhold and currentValue > self.solutionToBeat)
-            if improvedEnough or improvedFastEnough:
-                self.solutionToBeat = currentValue
-                model.terminate()
+                if improvedEnough or improvedFastEnough:
+                    self.bestSolution = currentValue
+                    model.terminate()
 
     
     def saveTracking(self,startTime: float,initialValue: float,path: str):

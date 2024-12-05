@@ -15,13 +15,17 @@ class Factory:
         self.model.model.setParam("DegenMoves", 1) # avoid these moves since takes a while without much benefits when not solving for optimality
         #self.model.model.setParam('MIPFocus', 1) # focus on finding good feasible solutions rather than optimality
         self.model.setFeasibleSolution()
-        self.variable = ['meetsAtEInG','meetsAtE','meets']
-        self.kStrategies = [PercentageK(0.10),FixedK(200),FixedK(200)]#0.01 for meetsAtEInG#[0.15,0.15,0.15]
+        self.variable = ['meetsAtEInG','meetsAtEInG','meetsAtEInG']
+        numberOfTotalMeets = self.findBound(data['n_girls']+data['n_boys'],
+                                            data['maxNumGuests'],
+                                            data['minNumGuests'],
+                                            data['numOfEvents'])
+        self.kStrategies = [FixedK(20),FixedK(100),FixedK(300)] #0.5 and 0.6 works
         self.trackData = trackData
         self.maxTimePerVariable = 30 # only does something if multiple variables are used
-        self.changing = False
+        self.changing = True
         self.improvementPercentage = 0.02
-        self.instantThreshhold = 15
+        self.instantThreshhold = 30
 
     def getBrancher(self) -> Brancher_base:
         
@@ -29,4 +33,21 @@ class Factory:
 
     def getTerminater(self) -> Terminate_base:
         
-        return ImprovementBoundTerminater(self.improvementPercentage,self.instantThreshhold,self.trackData)#
+        return ImprovementBoundTerminater(self.improvementPercentage,self.instantThreshhold,self.trackData)##InstantTerminater(self.trackData)#
+
+    def findBound(self,N,u,l,e):
+        c_u = sum([i for i in range(u)])
+        c_l = sum([i for i in range(l)])
+        max_objective = None
+
+        max_g_u = N // u  # Start with maximum feasible g_u
+
+        for g_u in range(max_g_u, -1, -1):  # Iterate from max_g_u down to 0
+            if (N - g_u * u) % l == 0:
+                g_l = (N - g_u * u) // l
+                if g_l >= 0:
+                    objective_value = c_u * g_u + c_l * g_l
+                    if max_objective is None or objective_value > max_objective:
+                        max_objective = objective_value
+
+        return max_objective*e

@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def findBound(N, u, l, c_u, c_l,e):
+def findBound(N,u,l,e):
+    c_u = sum([i for i in range(u)])
+    c_l = sum([i for i in range(l)])
     max_objective = None
 
     max_g_u = N // u  # Start with maximum feasible g_u
@@ -19,26 +21,27 @@ def findBound(N, u, l, c_u, c_l,e):
 
 
 
-def plotDescent(paths,N,u,l,c_u,c_l,e):
-    bound = findBound(N,u,l,c_u,c_l,e)
+groupSize_getter = lambda x: (4,5) if not x in (17,18,19,20) else (4,4) if x == 20 else (3,4) 
+
+def plotDescent(paths,N,e):
+    u,l = groupSize_getter(N)
+    bound = findBound(N,u,l,e)
     fig = plt.figure()
     for path in paths:
         df = pd.read_csv(path)
         plt.scatter(df['runTime'],1 - df['Value']/bound)
 
     plt.ylim(-0.05,1.05)
-    plt.xlim(-20,3620)
-    plt.hlines(0,-20,3620,linestyles='dashed',colors='black')
+    plt.xlim(-20,1820)
+    plt.hlines(0,-20,1820,linestyles='dashed',colors='black')
     plt.xlabel('Time in seconds')
     plt.ylabel('Optimality Gap %')
     fig.savefig(f'results/figures/baseModel_{N}')
 
-u = 5
-l = 4
 e = 6
-for size in [16,21,22,23,24,25,26,27,28]:
+for size in [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]:
     paths = [f'results/properResults/PureSolveSolutions/Tracking_size{size}.csv',
-        f'results/properResults/15PercentageK_Meets/Tracking_size{size}.csv',
-         f'results/properResults/15PercentageK_MeetsAtE/Tracking_size{size}.csv',
-         f'results/properResults/15PercentageK_MeetsAtEInG/Tracking_size{size}.csv']
-    plotDescent(paths,size,u,l,sum([i for i in range(u)]),sum([i for i in range(l)]),e)
+        f'results/properResults/Meets/Tracking_size{size}.csv',
+         f'results/properResults/MeetsAtE/Tracking_size{size}.csv',
+         f'results/properResults/MeetsAtEInG/Tracking_size{size}.csv']
+    plotDescent(paths,size,e)

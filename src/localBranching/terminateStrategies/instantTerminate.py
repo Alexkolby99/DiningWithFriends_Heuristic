@@ -15,6 +15,10 @@ class InstantTerminater(Terminate_base):
         self.objValues = []
         self.solutionToBeat = None # is here for interface consistency
 
+    def updateSolutionToBeat(self,objValue,runTime):
+
+        pass
+
     def callback(self, model: Model, where: int) -> None:
         
         if where == GRB.Callback.MIPSOL:

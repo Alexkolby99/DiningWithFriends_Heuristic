@@ -51,9 +51,12 @@ class StandardVariableBranching(Brancher_base):
 
 
     def selectIndices(self,objective,bestObjective):
+        if objective > bestObjective:
+            return 0
+        else:
+            return (self.indices + 1) % self.n_variables
+    
         if not self.changing:
-            if self.iterationsSinceImprovement == self.n_variables:
-                return self.indices
             return self.iter % self.n_variables
         
         if not objective > bestObjective:
@@ -79,7 +82,7 @@ class StandardVariableBranching(Brancher_base):
                 self.iterationsSinceImprovement += 1
 
             else:
-                self.iterationsSinceImprovement = 0
+                self.iterationsSinceImprovement = 0#max(0,self.iterationsSinceImprovement-(self.n_variables-1))
                 for idx,model in enumerate(self.models):
                     if idx != self.indices:
                         for var in model.getVars():
@@ -88,7 +91,7 @@ class StandardVariableBranching(Brancher_base):
                         model.update()
                 
             if self.iterationsSinceImprovement >= self.n_variables:
-                timeLimit = 10**16
+                timeLimit = 120
 
             self.indices = self.selectIndices(objective,bestObjective)
 
@@ -104,7 +107,7 @@ class StandardVariableBranching(Brancher_base):
                                                                 self.kStrategy.getK(getattr(self.dwfmodel,branchingVariable),objective))
                 self.model.update()
                 
-                self.iter += 1
+            self.iter += 1
 
         self.model.setParam('timeLimit',min(timeLimit,timeLeft))
         

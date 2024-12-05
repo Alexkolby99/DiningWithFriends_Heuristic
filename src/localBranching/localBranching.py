@@ -24,7 +24,9 @@ class LocalBranching:
         while True:
             branch.optimize(self.terminater.callback)
             objValue = branch.ObjVal
-            self.terminater.solutionToBeat = objValue
+            runTime = branch.Runtime
+            self.terminater.updateSolutionToBeat(objValue,runTime)
+
             timeLeft = timeLimit - (time.time() - start)
             
             if timeLeft <= 0:

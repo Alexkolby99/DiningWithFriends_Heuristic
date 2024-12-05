@@ -20,19 +20,18 @@ def findBound(N, u, l, c_u, c_l,e):
 
 types = ['Meets','MeetsAtE','MeetsAtEInG']
 
-intervals = [3600]
-sizes = [16,21,22,23,24,25,26,27,28]
+intervals = [1900]
+sizes = [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
 
 index = [(f'size_{size}',f'{int(interval/60)}min') for size in sizes for interval in intervals]
 
 df = pd.DataFrame(index = index)
 
-u = 5
-l = 4
+groupSize_getter = lambda x: (4,5) if not x in (17,18,19,20) else (4,4) if x == 20 else (3,4) 
 e = 6
 
 for size in sizes:
-
+    u,l = groupSize_getter(size)
     bound = findBound(size,u,l,sum([i for i in range(u)]),sum([i for i in range(l)]),e)
 
     pureSolveFile = os.path.join('results','properResults','PureSolveSolutions',f'Tracking_size{size}.csv')
@@ -43,7 +42,7 @@ for size in sizes:
         df.loc[[(f'size_{size}',f'{minutes}min')],'Pure solve'] = 1 - (_df.loc[_df['runTime']<interval,'Value'].max() / bound) 
 
     for type in types:
-        file = os.path.join('results','properResults',f'15PercentageK_{type}',f'Tracking_size{size}.csv')
+        file = os.path.join('results','properResults',type,f'Tracking_size{size}.csv')
         _df = pd.read_csv(file)
         for interval in intervals:
             minutes = int(interval/60)

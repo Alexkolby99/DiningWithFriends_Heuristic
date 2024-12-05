@@ -3,8 +3,9 @@ from typing import Dict
 from src.localBranching import LocalBranching
 from src.localBranching.factories import Factory
 
-resultFolder = os.path.join('results','properResults','1PercentageK_MeetsAtEInG_corrected')
-timeLimit = 3600     
+
+resultFolder = os.path.join('results','properResults','MeetsAtEInG_changing_corrected')
+timeLimit = 1800     
 trackData: bool = True
 
 '''
@@ -13,15 +14,15 @@ trackData: bool = True
 19: initialize with 8,11 (l,u)=(3,4)
 '''
 
-
+nGirls_getter = lambda x: x // 2 if not x in (17,19) else 7 if x == 17 else 8 
+groupSize_getter = lambda x: (4,5) if not x in (17,18,19,20) else (4,4) if x == 20 else (3,4) 
 
 if __name__ == '__main__':
-        l = 4
-        u = 5
         n_events = 6
-        for i in [16,20,21,22,23,24,25,26,27,28,29,30]:
+        for i in [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]:
 
-                n_girls = i // 2
+                l,u = groupSize_getter(i)
+                n_girls = nGirls_getter(i)
                 n_boys = i-n_girls
 
                 data: Dict = {   "n_girls": n_girls,
