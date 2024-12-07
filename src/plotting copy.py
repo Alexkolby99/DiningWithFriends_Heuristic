@@ -57,27 +57,20 @@ for i in range(3):
         
 
 
-        df = pd.read_csv(f'results/properResults/MeetsAtEInG_changing/Tracking_size{files[idx]}.csv',index_col=0)
+        df = pd.read_csv(f'results/properResults/MeetsAtEInG/Tracking_size{files[idx]}.csv',index_col=0)
         df2 = pd.read_csv(f'results/properResults/PureSolveSolutions/Tracking_size{files[idx]}.csv',index_col=0)
-        df3 = pd.read_csv(f'results/properResults/MeetsAtE_changing/Tracking_size{files[idx]}.csv',index_col=0)
-        df4 = pd.read_csv(f'results/properResults/Meets_changing/Tracking_size{files[idx]}.csv',index_col=0)
-        df5 = pd.read_csv(f'results/properResults/Cycling/Tracking_size{files[idx]}.csv',index_col=0)
-        df6 = pd.read_csv(f'results/properResults/Changing/Tracking_size{files[idx]}.csv',index_col=0)
-
+        df3 = pd.read_csv(f'results/properResults/MeetsAtE/Tracking_size{files[idx]}.csv',index_col=0)
+        df4 = pd.read_csv(f'results/properResults/Meets/Tracking_size{files[idx]}.csv',index_col=0)
         df['OptimalityGap'] =  (bound- df['Value'])/bound
         df2['OptimalityGap'] = (bound - df2['Value'])/bound
         df3['OptimalityGap'] = (bound - df3['Value'])/bound
         df4['OptimalityGap'] = (bound - df4['Value'])/bound
-        df5['OptimalityGap'] = (bound - df5['Value'])/bound
-        df6['OptimalityGap'] = (bound - df6['Value'])/bound
 
         ax = axes[i, j]  # Get the specific subplot
-        ax.plot(df2['runTime'],df2['OptimalityGap'],'o',label='PureSolve',alpha=1,markersize=5,color='black')
-        ax.plot(df['runTime'],df['OptimalityGap'],'o',label='MeetsAtEinG',alpha=0.5,markersize=3)
-        ax.plot(df3['runTime'],df3['OptimalityGap'],'o',label='MeetsAtE',alpha=0.5,markersize=3)
-        ax.plot(df4['runTime'],df4['OptimalityGap'],'o',label='Meets',alpha=0.5,markersize=3)
-        ax.plot(df5['runTime'],df5['OptimalityGap'],'o',label='Cycling',alpha=0.5,markersize=3)
-        ax.plot(df6['runTime'],df6['OptimalityGap'],'o',label='Changing',alpha=0.5,markersize=3)
+        ax.plot(df2['runTime'],df2['OptimalityGap'],'o',label='PureSolve',alpha=1,markersize = 5,color='black')
+        ax.plot(df['runTime'],df['OptimalityGap'],'o',label='MeetsAtEinG',alpha=0.5,markersize = 5)
+        ax.plot(df3['runTime'],df3['OptimalityGap'],'o',label='MeetsAtE',alpha=0.5,markersize = 5)
+        ax.plot(df4['runTime'],df4['OptimalityGap'],'o',label='Meets',alpha=0.5,markersize = 5)
         ax.set_title(f"problem of size {files[idx]}")
         ax.set_ylim(0,1)
         ax.grid(True)

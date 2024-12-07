@@ -1,2 +1,1 @@
 from src.localBranching.branchingStrategies.standardVariableBranching import StandardVariableBranching
-from src.localBranching.branchingStrategies.changingOnPlateuVariableBranching import ChangingOnPlateuVariableBranching

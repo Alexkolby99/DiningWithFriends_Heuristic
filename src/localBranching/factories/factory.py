@@ -15,15 +15,15 @@ class Factory:
         self.model.model.setParam("DegenMoves", 1) # avoid these moves since takes a while without much benefits when not solving for optimality
         #self.model.model.setParam('MIPFocus', 1) # focus on finding good feasible solutions rather than optimality
         self.model.setFeasibleSolution()
-        self.variable = ['meetsAtEInG','meetsAtEInG','meetsAtEInG']
+        self.variable = ['meets','meetsAtE','meetsAtEInG']
         numberOfTotalMeets = self.findBound(data['n_girls']+data['n_boys'],
                                             data['maxNumGuests'],
                                             data['minNumGuests'],
                                             data['numOfEvents'])
-        self.kStrategies = [FixedK(20),FixedK(100),FixedK(300)] #0.5 and 0.6 works
+        self.kStrategies = [PercentageK(0.15),FixedK(50),FixedK(60)] #0.5 and 0.6 works
         self.trackData = trackData
         self.maxTimePerVariable = 30 # only does something if multiple variables are used
-        self.changing = True
+        self.changing = False
         self.improvementPercentage = 0.02
         self.instantThreshhold = 30
 

@@ -51,10 +51,11 @@ class StandardVariableBranching(Brancher_base):
 
 
     def selectIndices(self,objective,bestObjective):
-        if objective > bestObjective:
-            return 0
-        else:
-            return (self.indices + 1) % self.n_variables
+        ## this is for a single variable with multiple k's
+        # if objective > bestObjective:
+        #     return 0
+        # else:
+        #     return (self.indices + 1) % self.n_variables
     
         if not self.changing:
             return self.iter % self.n_variables

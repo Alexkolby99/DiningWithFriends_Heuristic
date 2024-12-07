@@ -15,7 +15,7 @@ groupSize_getter = lambda x: (4,5) if not x in (17,18,19,20) else (4,4) if x == 
 
 
 if __name__ == '__main__':
-        n_events = 3
+        n_events = 7
         for i in [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]:
                 l,u = groupSize_getter(i)
                 n_girls = nGirls_getter(i)
@@ -33,13 +33,13 @@ if __name__ == '__main__':
                 solver = DinnerWithFriendsSolver(MaximizeMeetsFactory())
                 solver.readData(data)
                 solver.setFeasibleSolution()
-                start = time.time()
-                objValues, runTime = solver.solveModel(timeLimit)
-                end = time.time()
-                runTime.append(end)
-                objValues.append(objValues[-1])
-                df = pd.DataFrame({'runTime':np.array(runTime) - np.array(start),
-                                   'Value':objValues,})
-                df['BestBound'] = solver.model.ObjBound
-                df.to_csv(trackingPath)
+                # start = time.time()
+                # objValues, runTime = solver.solveModel(timeLimit)
+                # end = time.time()
+                # runTime.append(end)
+                # objValues.append(objValues[-1])
+                # df = pd.DataFrame({'runTime':np.array(runTime) - np.array(start),
+                #                    'Value':objValues,})
+                # df['BestBound'] = solver.model.ObjBound
+                # df.to_csv(trackingPath)
                 pass
