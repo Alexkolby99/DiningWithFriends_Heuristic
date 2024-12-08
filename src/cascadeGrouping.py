@@ -96,7 +96,7 @@ class CascadeGrouping:
         self.n_girls = n_girls
         self.n_boys = n_boys
         self.l = l
-        self.u = l if (self.n_girls + self.n_boys) % self.l == 0 else u
+        self.u = l if (self.n_girls + self.n_boys) % self.l == 0 and self.l > 3 else u 
         self.m_lower = int((n_girls+n_boys) // self.l)
         self.m_upper = int(np.ceil((n_girls+n_boys) / self.u))
         self.initConstructer = standardInitialConstructer() if self.l > 3 else solverInitialConstructer()
@@ -152,7 +152,7 @@ class CascadeGrouping:
                 groupMatrix = self.getMatrixFromGroups(groups,leastGender)
 
             return events
-        except:
+        except Exception as e:
             print('Unable to find a solution')
             return None
 
@@ -196,22 +196,53 @@ class CascadeGrouping:
         G = np.zeros((self.u,self.m_upper),dtype=Student)
         G[:] = None
 
-        for i in range(self.m_upper):
-            leastGender_group = [m for m in groups[i].members if m.gender == leastGender]
-            maxGender_group = [m for m in groups[i].members if m.gender != leastGender]
-
-            if len(leastGender_group) == 0:
-                G[:len(maxGender_group),i] = maxGender_group
-            elif len(maxGender_group) == 0:
-                G[:len(leastGender_group),i] = leastGender_group
+        
+        for i in range(len(groups)):
+            if leastGender == 0:
+                students = sorted([m for m in groups[i].members],key=lambda x: -x.gender if x is not None else 10000)
             else:
+                students = sorted([m for m in groups[i].members],key=lambda x: x.gender if x is not None else 10000)
 
-                G[0,i] = maxGender_group.pop()
-                G[1,i] = maxGender_group.pop()
-                G[2,i] = leastGender_group.pop()
-                G[3,i] = leastGender_group.pop()
-                remainingStudents = leastGender_group + maxGender_group
-                G[4:4+len(remainingStudents),i] = remainingStudents
+            for _ in range(self.u-len(students)):
+                students.append(None)
+            G[:,i] = students
+
+        # Count non-None values in each column
+        non_none_counts = np.array([(col != None).sum() for col in G.T])  # Transpose to work with columns
+
+        # Get the sorted column indices based on non-None counts
+        sorted_indices = np.argsort(non_none_counts)
+
+        # Reorder columns
+        G= G[:, sorted_indices]
+
+        for i in range(self.m_upper-1):
+            if non_none_counts[i] <= 3:
+                if G[0,i].gender == leastGender:
+                    if non_none_counts[i+1] <= 3 and G[0,i+1].gender != leastGender:
+                        group_copy = G[:,i].copy()
+                        G[:,i] = G[:,i+1] 
+                        G[:,i+1] = group_copy
+            else:
+                break
+
+
+        # for i in range(self.m_upper):
+        #     leastGender_group = [m for m in groups[i].members if m.gender == leastGender]
+        #     maxGender_group = [m for m in groups[i].members if m.gender != leastGender]
+
+        #     if len(leastGender_group) == 0:
+        #         G[:len(maxGender_group),i] = maxGender_group
+        #     elif len(maxGender_group) == 0:
+        #         G[:len(leastGender_group),i] = leastGender_group
+        #     else:
+
+        #         G[0,i] = maxGender_group.pop()
+        #         G[1,i] = maxGender_group.pop()
+        #         G[2,i] = leastGender_group.pop()
+        #         G[3,i] = leastGender_group.pop()
+        #         remainingStudents = leastGender_group + maxGender_group
+        #         G[4:4+len(remainingStudents),i] = remainingStudents
 
         return G
 
@@ -328,7 +359,7 @@ class CascadeGrouping:
                         else:
                             moves = [GetSameGenderMove(self.l,self.u)]
                     else:
-                        if len(boy_groupCounter) >= sum(boy_groupCounter) // 2:
+                        if len(boy_groupCounter) > sum(boy_groupCounter) // 2:
                             moves =  moves = [RemoveLonelyGenderMove(self.l,self.u),SwapLonelyGenderMove(self.l,self.u)]
                         else:
                             moves = [GetSameGenderMove(self.l,self.u)]

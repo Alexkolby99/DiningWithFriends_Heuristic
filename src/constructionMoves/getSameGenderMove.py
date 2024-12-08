@@ -40,13 +40,11 @@ class GetSameGenderMove(ConstructionMove_base):
                                             group.addMember(m2)
                                             return True
                                     
-                                    group.addMember(m1)
+                                        group.addMember(m1)
                             else:
-                                if self.__canRemove(m2,g2):
-                                    if self.__canAdd(m2,group):
-                                        g2.removeMember(m2)
-                                        group.addMember(m2)
-                                        return True
+                                if self.__canAdd(m2,group):
+                                    group.addMember(m2)
+                                    return True
                                 
                                 for m1 in group.members[:]:
                                     if m1.gender != lonelyGender:

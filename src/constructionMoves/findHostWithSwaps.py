@@ -46,9 +46,9 @@ class FindHostWithSwapsMove(ConstructionMove_base):
     def __canSwap(self,student1: Student, student2: Student,group1: Group,group2: Group):
 
         if student1.gender != student2.gender:
-            if group1.getGenderCount(student2.gender) == 2:
+            if group1.getGenderCount(student2.gender) == 2 or group2.getGenderCount(student1.gender)==0:
                 return False
-            if group2.getGenderCount(student1.gender) == 2:
+            if group2.getGenderCount(student1.gender) == 2 or group1.getGenderCount(student2.gender)==0:
                 return False
 
         if group1.host is not None:
