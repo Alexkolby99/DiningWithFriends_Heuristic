@@ -15,7 +15,7 @@ groupSize_getter = lambda x: (4,5) if not x in (17,18,19,20) else (4,4) if x == 
 
 
 if __name__ == '__main__':
-        for i in [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]:
+        for i in [26,27,28,29,30]:
                 n_events = 6#7 if i in (17,18,23) else 8
                 l,u = groupSize_getter(i)
                 n_girls = 6 if i != 17 else 7#nGirls_getter(i)
