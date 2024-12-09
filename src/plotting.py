@@ -57,12 +57,12 @@ for i in range(3):
         
 
 
-        df = pd.read_csv(f'results/properResults/MeetsAtEInG_changing/Tracking_size{files[idx]}.csv',index_col=0)
-        df2 = pd.read_csv(f'results/properResults/PureSolveSolutions/Tracking_size{files[idx]}.csv',index_col=0)
-        df3 = pd.read_csv(f'results/properResults/MeetsAtE_changing/Tracking_size{files[idx]}.csv',index_col=0)
-        df4 = pd.read_csv(f'results/properResults/Meets_changing/Tracking_size{files[idx]}.csv',index_col=0)
-        df5 = pd.read_csv(f'results/properResults/Cycling/Tracking_size{files[idx]}.csv',index_col=0)
-        df6 = pd.read_csv(f'results/properResults/Changing/Tracking_size{files[idx]}.csv',index_col=0)
+        df = pd.read_csv(f'results/mainResults/MeetsAtEInG_changing/Tracking_size{files[idx]}.csv',index_col=0)
+        df2 = pd.read_csv(f'results/mainResults/PureSolveSolutions/Tracking_size{files[idx]}.csv',index_col=0)
+        df3 = pd.read_csv(f'results/mainResults/MeetsAtE_changing/Tracking_size{files[idx]}.csv',index_col=0)
+        df4 = pd.read_csv(f'results/mainResults/Meets_changing/Tracking_size{files[idx]}.csv',index_col=0)
+        df5 = pd.read_csv(f'results/mainResults/Cycling/Tracking_size{files[idx]}.csv',index_col=0)
+        df6 = pd.read_csv(f'results/mainResults/Changing/Tracking_size{files[idx]}.csv',index_col=0)
 
         df['OptimalityGap'] =  (bound- df['Value'])/bound
         df2['OptimalityGap'] = (bound - df2['Value'])/bound
@@ -73,12 +73,14 @@ for i in range(3):
 
         ax = axes[i, j]  # Get the specific subplot
         ax.plot(df2['runTime'],df2['OptimalityGap'],'o',label='PureSolve',alpha=1,markersize=5,color='black')
+        ax.hlines(df2['OptimalityGap'].min(),-100,2000,color='black',linestyle = 'dashed',alpha = 0.7,label='Best pure solve solution')
         ax.plot(df['runTime'],df['OptimalityGap'],'o',label='MeetsAtEinG',alpha=0.5,markersize=3)
         ax.plot(df3['runTime'],df3['OptimalityGap'],'o',label='MeetsAtE',alpha=0.5,markersize=3)
         ax.plot(df4['runTime'],df4['OptimalityGap'],'o',label='Meets',alpha=0.5,markersize=3)
         ax.plot(df5['runTime'],df5['OptimalityGap'],'o',label='Cycling',alpha=0.5,markersize=3)
         ax.plot(df6['runTime'],df6['OptimalityGap'],'o',label='Changing',alpha=0.5,markersize=3)
         ax.set_title(f"problem of size {files[idx]}")
+        ax.set_xlim(-50,1850)
         ax.set_ylim(0,1)
         ax.grid(True)
         ax.set_ylabel('')
@@ -109,7 +111,7 @@ for i in range(3):
         idx += 1
 
 handles, labels = axes[0,0].get_legend_handles_labels()
-fig.legend(handles, labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, 0.92))
+fig.legend(handles, labels, loc='lower center', ncol=4, bbox_to_anchor=(0.5, 0.92))
 
 plt.tight_layout(rect=[0, 0, 1, 0.9])
 plt.show()

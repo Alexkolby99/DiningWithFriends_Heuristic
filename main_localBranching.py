@@ -4,7 +4,7 @@ from src.localBranching import LocalBranching
 from src.localBranching.factories import Factory
 
 
-resultFolder = os.path.join('results','screwedWeight','Meets_changing')
+resultFolder = os.path.join('results','screwedWeight','Changing')
 timeLimit = 1800     
 trackData: bool = True
 
