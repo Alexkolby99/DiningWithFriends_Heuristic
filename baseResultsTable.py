@@ -36,7 +36,7 @@ for size in sizes:
     bound = findBound(size,u,l,sum([i for i in range(u)]),sum([i for i in range(l)]),e)
     print(bound)
 
-    pureSolveFile = os.path.join('results','8events','PureSolveSolutions',f'Tracking_size{size}.csv')
+    pureSolveFile = os.path.join('results','screwedWeight','PureSolveSolutions',f'Tracking_size{size}.csv')
     _df = pd.read_csv(pureSolveFile)
     
     for interval in intervals:
@@ -44,7 +44,7 @@ for size in sizes:
         df.loc[[(f'size_{size}',f'{minutes}min')],'Pure solve'] = 1 - (_df.loc[_df['runTime']<interval,'Value'].max() / bound) 
 
     for type in types:
-        file = os.path.join('results','8events',type,f'Tracking_size{size}.csv')
+        file = os.path.join('results','screwedWeight',type,f'Tracking_size{size}.csv')
         _df = pd.read_csv(file)
         for interval in intervals:
             minutes = int(interval/60)

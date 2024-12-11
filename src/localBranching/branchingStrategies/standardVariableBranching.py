@@ -41,7 +41,7 @@ class StandardVariableBranching(Brancher_base):
 
         self.iter = 0
         self.n_variables = len(self.branchingVariable)
-        self.maxTimePerVariable = 10**16 if self.n_variables == 1 else maxTimePerVariable
+        self.maxTimePerVariable = 120 if self.n_variables == 1 else maxTimePerVariable
         self.iterationsSinceImprovement = 0
 
 
@@ -52,10 +52,10 @@ class StandardVariableBranching(Brancher_base):
 
     def selectIndices(self,objective,bestObjective):
         ## this is for a single variable with multiple k's
-        # if objective > bestObjective:
-        #     return 0
-        # else:
-        #     return (self.indices + 1) % self.n_variables
+        if objective > bestObjective:
+            return 0
+        else:
+            return (self.indices + 1) % self.n_variables
     
         if not self.changing:
             return self.iter % self.n_variables

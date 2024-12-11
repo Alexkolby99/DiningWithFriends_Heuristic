@@ -11,7 +11,7 @@ class LocalBranching:
     def __init__(self,factory: Factory_base,trackingPath = None) -> None:
         self.brancher = factory.getBrancher()
         self.terminater = factory.getTerminater()
-        self.bestObj = self.brancher.initObjectiveValue if self.brancher.initObjectiveValue < 100000 else 0
+        self.bestObj = -100#self.brancher.initObjectiveValue if self.brancher.initObjectiveValue < 100000 else 0
         if trackingPath is None:
             self.trackingPath = os.path.join(f'tracking_{datetime.now().strftime("%Y%m%d_%H_%M_%S")}.csv')
         else:

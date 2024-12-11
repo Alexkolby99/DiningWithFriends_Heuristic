@@ -24,13 +24,18 @@ class MaximizeHostsFactory():
 
     def setAdditionalConstraints(self,model: DinnerWithFriendsSolver) -> None:
         
+        self.Z1 = model.model.addVar(vtype=GRB.INTEGER, name="Z1")
+        self.Z2 = model.model.addVar(vtype=GRB.INTEGER, name="Z2")
+
         assert self.isHostOnce is not None, 'Make sure to set the objective function first'
 
         for kid in model.Kids:
+            model.model.addConstr(gp.quicksum(model.meets[pair] for pair in model.Pairs if kid in pair) >= self.Z1)
+            model.model.addConstr(gp.quicksum(model.meets[pair] for pair in model.Pairs if kid in pair) <= self.Z2)
             # ensure isHostOnce can only be one, if the kid actually hosts an event
-            model.model.addConstr(gp.quicksum(self.isHostOnce[kid]) <= gp.quicksum(model.isHost[kid,e] for e in model.Events)) 
-            # ensures the kid that meet fewest meets at least self.fewestMeetsValue 
-            model.model.addConstr(gp.quicksum(model.meets[pair] for pair in model.Pairs if kid in pair) >= self.fewestMeetsValue)
+            model.model.addConstr(self.isHostOnce[kid] <= gp.quicksum(model.isHost[kid,e] for e in model.Events)) 
 
         # ensure that the total number of meets is bound from below by self.meetsValue
         model.model.addConstr(gp.quicksum(model.meets[i, j] for (i, j) in model.Pairs) >= self.meetsValue)
+
+        model.model.addConstr(self.Z1-self.Z2 >= self.fewestMeetsValue)
