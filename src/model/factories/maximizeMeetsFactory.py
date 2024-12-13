@@ -1,4 +1,4 @@
-from src.model import DinnerWithFriendsSolver
+from src.model.gurobipyModel import DinnerWithFriendsSolver
 import gurobipy as gp
 from gurobipy import GRB
 

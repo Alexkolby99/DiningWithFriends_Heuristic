@@ -1,2 +1,2 @@
 # DiningWithFriends_Heuristic
- Repository containing heuristic solutions to the "Dining with friends" problem
+ This repository containing implementation of a local branheuristic solutions to the "Dining with friends" problem
