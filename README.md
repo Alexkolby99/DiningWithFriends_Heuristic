@@ -20,3 +20,4 @@
  - **test**: Unit tests of some important central classes
  - **main_constructionHeuristic.py**: Used to find a feasible solution
  - **main_LocalBranching.py**: Used to run the local branching heuristic
+ - **requirements.txt**: dependencies
