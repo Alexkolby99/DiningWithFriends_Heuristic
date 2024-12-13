@@ -1,53 +1,63 @@
-from typing import Dict
+from typing import Dict, List, Literal
 from src.localBranching._interfaces import Brancher_base, Terminate_base
 from src.localBranching.branchingStrategies import StandardVariableBranching
-from src.localBranching.branchingStrategies.kStrategies import PercentageK, FixedK
 from src.localBranching.terminateStrategies import InstantTerminater, ImprovementBoundTerminater
 from src.model.gurobipyModel import DinnerWithFriendsSolver
 from src.model.factories import MaximizeMeetsFactory
+from src.localBranching.branchingStrategies._interfaces import KStrategy_base
 
 
 class Factory:
 
-    def __init__(self,data: Dict,trackData: bool) -> None:
+    def __init__(self,
+                 data: Dict,
+                 trackData: bool,
+                 variables: List[Literal['meets','meetsAtE','meetsAtEInG']],
+                 kStrategies: List[KStrategy_base],
+                 maxTimePerVariable: int,
+                 ImprovementPercentage: float,
+                 InstantTerminationThreshhold: int,
+                 strategy: List[Literal['changing','cycling','restarting']]) -> None:
+        
+        for v in variables:
+            assert v in ['meets','meetsAtE','meetsAtEInG'], "Variable not allowed"
+
+        assert len(variables) == len(kStrategies), "Different number of kstrategies and variables are given"
+
+        assert strategy in ['changing','cycling','restarting'], 'The given strategy is not allowed'
+
         self.model = DinnerWithFriendsSolver(MaximizeMeetsFactory())
         self.model.readData(data)
         self.model.model.setParam("DegenMoves", 1) # avoid these moves since takes a while without much benefits when not solving for optimality
         #self.model.model.setParam('MIPFocus', 1) # focus on finding good feasible solutions rather than optimality
         self.model.setFeasibleSolution()
-        self.variable = ['meets','meets','meets']
-        numberOfTotalMeets = self.findBound(data['n_girls']+data['n_boys'],
-                                            data['maxNumGuests'],
-                                            data['minNumGuests'],
-                                            data['numOfEvents'])
-        self.kStrategies = [PercentageK(0.025),PercentageK(0.05),PercentageK(0.1)] #0.5 and 0.6 works
+        self.variable = variables
+        self.kStrategies = kStrategies
         self.trackData = trackData
-        self.maxTimePerVariable = 30 # only does something if multiple variables are used
-        self.changing = True
-        self.improvementPercentage = 0.02
-        self.instantThreshhold = 30
+        self.maxTimePerVariable = maxTimePerVariable # only does something if multiple variables are used
+        self.improvementPercentage = ImprovementPercentage
+        self.instantThreshhold = InstantTerminationThreshhold
+
+        # Only one can be True of these set by the strategy given if both are false the cycling approach is used
+
+        self.changing = False
+        self.restarting = False
+        if strategy != 'cycling':
+            setattr(self,strategy,True)
 
     def getBrancher(self) -> Brancher_base:
         
-        return StandardVariableBranching(self.model,self.variable,self.kStrategies,self.maxTimePerVariable,self.changing)
+        return StandardVariableBranching(self.model,
+                                         self.variable,
+                                         self.kStrategies,
+                                         self.instantThreshhold,
+                                        self.maxTimePerVariable,
+                                        self.changing,
+                                        self.restarting)
 
     def getTerminater(self) -> Terminate_base:
         
-        return ImprovementBoundTerminater(self.improvementPercentage,self.instantThreshhold,self.trackData)##InstantTerminater(self.trackData)#
+        return ImprovementBoundTerminater(self.improvementPercentage,
+                                          self.instantThreshhold,
+                                          self.trackData)
 
-    def findBound(self,N,u,l,e):
-        c_u = sum([i for i in range(u)])
-        c_l = sum([i for i in range(l)])
-        max_objective = None
-
-        max_g_u = N // u  # Start with maximum feasible g_u
-
-        for g_u in range(max_g_u, -1, -1):  # Iterate from max_g_u down to 0
-            if (N - g_u * u) % l == 0:
-                g_l = (N - g_u * u) // l
-                if g_l >= 0:
-                    objective_value = c_u * g_u + c_l * g_l
-                    if max_objective is None or objective_value > max_objective:
-                        max_objective = objective_value
-
-        return max_objective*e

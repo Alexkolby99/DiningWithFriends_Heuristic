@@ -6,7 +6,7 @@ from src.student import Student
 from src.group import Group
 from src.event import Event
 from src.constructionMoves import RemoveLonelyGenderMove, SwapLonelyGenderMove, GetSameGenderMove,FindHostWithSwapsMove
-from gurobipyModel_HeuristicOptimization import DinnerWithFriendsSolver
+from src.model.gurobipyModel_HeuristicOptimization import DinnerWithFriendsSolver
 
 class solverInitialConstructer:
     def __init__(self) -> None:
@@ -277,43 +277,6 @@ class CascadeGrouping:
                 break
 
         return G
-        # G = np.zeros((self.u,self.m_upper),dtype=Student)
-
-
-        # genderWithMost = girls.copy() if self.n_girls > self.n_boys else boys.copy()
-        # genderWithLeast = girls.copy() if self.n_girls <= self.n_boys else boys.copy()
-
-        # genderWithMost_UniqueGroupCount = min(len(genderWithMost) // 2,self.m_upper)
-        # genderWithLeast_UniqueGroupCount = min(len(genderWithLeast) // 2,self.m_upper)
-
-
-        # G[0,:genderWithMost_UniqueGroupCount] =genderWithMost [:genderWithMost_UniqueGroupCount]
-        # G[1,:genderWithMost_UniqueGroupCount] = genderWithMost[genderWithMost_UniqueGroupCount:genderWithMost_UniqueGroupCount*2]
-
-        # genderWithMost = genderWithMost[genderWithMost_UniqueGroupCount*2:]
-
-        # G[2,:genderWithLeast_UniqueGroupCount] = genderWithLeast[:genderWithLeast_UniqueGroupCount]
-        # G[3,:genderWithLeast_UniqueGroupCount] = genderWithLeast[genderWithLeast_UniqueGroupCount:genderWithLeast_UniqueGroupCount*2]
-
-        # genderWithLeast = genderWithLeast[genderWithLeast_UniqueGroupCount*2:]
-
-        # for i in range(self.m_upper)[::-1]:
-        #     if np.count_nonzero(G[:,i]) < 3:     
-        #         G[2,i] = genderWithMost.pop()
-        #         G[3,i] = genderWithMost.pop()
-        #     else:
-        #         break
-
-        # for i in range(4,self.u):
-        #     for j in range(self.m_upper):
-        #         if len(genderWithLeast) != 0:
-        #             G[i,j] = genderWithLeast.pop()
-        #         elif len(genderWithMost) != 0:
-        #             G[i,j] = genderWithMost.pop()
-        #         else:
-        #             G[i,j] = None
-
-        # return G
 
     def cascadeGroupMatrix(self,groupMatrix):
         
@@ -339,9 +302,6 @@ class CascadeGrouping:
 
     def repairGenderCount(self,groups,leastGender):
         
-        # this is where we need to be careful insertmove should check if can be removed from the group as well
-        # then there need to be a swap move, that swaps persons
-
         girl_groupCounter = np.array([g.getGenderCount(0) for g in groups if not g.getGenderCount(0) == 0])
         boy_groupCounter = np.array([g.getGenderCount(1) for g in groups if not g.getGenderCount(1) == 0])
 
@@ -369,7 +329,6 @@ class CascadeGrouping:
                                                             
                             girl_groupCounter = np.array([g.getGenderCount(0) for g in groups if not g.getGenderCount(0) == 0])
                             boy_groupCounter = np.array([g.getGenderCount(1) for g in groups if not g.getGenderCount(1) == 0])
-                            #girl_groupCounter = np.array([g.getGenderCount(leastGender) for g in groups if not g.getGenderCount(leastGender) == 0])
                             break
 
 
@@ -472,24 +431,3 @@ class CascadeGrouping:
 
         return True
 
-if __name__ == '__main__':
-
-    def read_json_to_dict(file_path):
-        with open(file_path, 'r') as json_file:
-            data = json.load(json_file)
-        return data
-
-    testInstancefolder = 'testInstances'
-
-    for file in os.listdir(testInstancefolder):
-        print(file)
-        file = 'testInstance14.json'
-        instance = read_json_to_dict(os.path.join(testInstancefolder,file))
-        l = instance['minNumGuests']
-        u = instance['maxNumGuests']
-        n_boys = instance['n_boys']
-        n_girls = instance['n_girls']
-        n_events = instance['numOfEvents']
-        grouper = CascadeGrouping(n_girls,n_boys,l,u)
-        events = grouper.constructSolution(n_events)
-        grouper.writeToExcel(events,f'overviewFile_{file}.xlsx')

@@ -15,9 +15,12 @@ class StandardVariableBranching(Brancher_base):
     def __init__(self,model:DinnerWithFriendsSolver,
                  variable: List[VARIABLES] | VARIABLES ,
                  kStrategy: KStrategy_base | List[KStrategy_base],
-                 maxTimePerVariable: float = 60,
-                 changing: bool = False) -> None:
+                 initialMaxTimePerVariable: float = 30,
+                 maxTimePerVariable: float = 120,
+                 changing: bool = False,
+                 restarting: bool = False) -> None:
         
+        self.restarting = restarting
         self.changing = changing
         self.indices = 0
         self.branchingVariable = [variable] if not isinstance(variable,list) else variable
@@ -41,8 +44,9 @@ class StandardVariableBranching(Brancher_base):
 
         self.iter = 0
         self.n_variables = len(self.branchingVariable)
-        self.maxTimePerVariable = 120 if self.n_variables == 1 else maxTimePerVariable
+        self.initialMaxTimePerVariable = maxTimePerVariable if self.n_variables == 1 else initialMaxTimePerVariable
         self.iterationsSinceImprovement = 0
+        self.maxTimePerVariable = maxTimePerVariable
 
 
     @property
@@ -52,11 +56,12 @@ class StandardVariableBranching(Brancher_base):
 
     def selectIndices(self,objective,bestObjective):
         ## this is for a single variable with multiple k's
-        if objective > bestObjective:
-            return 0
-        else:
-            return (self.indices + 1) % self.n_variables
-    
+        if self.restarting:
+            if objective > bestObjective:
+                return 0
+            else:
+                return (self.indices + 1) % self.n_variables
+        
         if not self.changing:
             return self.iter % self.n_variables
         
@@ -68,7 +73,7 @@ class StandardVariableBranching(Brancher_base):
 
     def nextBranch(self,objective: float,bestObjective: float, timeLeft: float) -> Model:
 
-        timeLimit = self.maxTimePerVariable
+        timeLimit = self.initialMaxTimePerVariable
 
         # handle if optimal solution is found, one need to check if also optimal to the full problem
         if objective is not None:
@@ -92,7 +97,7 @@ class StandardVariableBranching(Brancher_base):
                         model.update()
                 
             if self.iterationsSinceImprovement >= self.n_variables:
-                timeLimit = 120
+                timeLimit = self.maxTimePerVariable
 
             self.indices = self.selectIndices(objective,bestObjective)
 
