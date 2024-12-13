@@ -3,13 +3,14 @@ from typing import Dict, List, Literal
 from src.localBranching import LocalBranching
 from src.localBranching.branchingStrategies.kStrategies import PercentageK, FixedK
 from src.localBranching.factories import Factory
+from src.localBranching.branchingStrategies._interfaces import KStrategy_base
 
 
 # Hyper parameters
 timeLimit = 1800 # The total timelimit in seconds for optimizing
 trackData: bool = True # if the descent should be tracked and saved to a csv file or not
 variables: List[Literal['meets','meetsAtE','meetsAtEInG']] = ['meets','meetsAtE','meetsAtEInG'] # the variables used to branch upon
-kstrategies = [PercentageK(0.1),PercentageK(0.05),PercentageK(0.1)] # the corresponding k strategies for the variables
+kstrategies: List[KStrategy_base] = [PercentageK(0.1),PercentageK(0.05),PercentageK(0.1)] # the corresponding k strategies for the variables
 maxTimePerVariable = 120 # Max time to use per variable before moving on, Initially this is set to instantTerminationThreshhold until no solution was able to found for all variables
 improvementPercentage = 0.02 # The improvement percentage bound
 instantTerminationThreshhold = 30 # the threshhold in seconds for when a branch terminate as soon as an improved solution is found

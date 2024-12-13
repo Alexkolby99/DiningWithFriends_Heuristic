@@ -1,5 +1,10 @@
 from src.cascadeGrouping import CascadeGrouping
 
+'''
+Due to the problem being NP-hard to find feasible solutions for there is no guarentee 
+for success using this construction heuristic
+'''
+
 # The actual data for the problem
 n_girls = 8
 n_boys = 8
